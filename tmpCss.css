@@ -1,0 +1,121 @@
+/* Główny kontener przycisku */
+.nav-box {
+    position: relative;
+    display: flex;
+    align-items: flex-end; /* Tekst na dole przycisku */
+    justify-content: space-between; /* Rozsuwa tekst i strzałkę na boki */
+    width: 450px;
+    height: 180px;
+    padding: 30px;
+    text-decoration: none;
+    overflow: hidden; /* Obcina wszystko, co wystaje poza przycisk */
+    font-family: sans-serif;
+}
+
+/* Warstwa z obrazkiem w tle */
+.box-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+/* Nakładka przyciemniająco-czerwona */
+.box-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Domyślnie ciemna, lekko brązowo-czerwona warstwa */
+    background-color: rgba(44, 23, 23, 0.6); 
+    z-index: 2;
+    transition: background-color 0.4s ease; /* Płynna zmiana koloru */
+}
+
+/* Zmiana koloru nakładki po najechaniu myszką */
+.nav-box:hover .box-overlay {
+    /* Po najechaniu robi się bardziej wyraźna i czerwona (zwiększamy krycie) */
+    background-color: rgba(114, 34, 46, 0.75); 
+}
+
+/* Treść (teksty) */
+.box-content {
+    position: relative;
+    z-index: 3;
+    color: #ffffff;
+}
+
+.box-subtitle {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #d1b499; /* Złoty/beżowy odcień tekstu pomocniczego */
+    margin-bottom: 8px;
+}
+
+.box-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: normal;
+    font-family: 'Georgia', serif; /* Szeryfowy font jak na zdjęciu */
+}
+
+/* Strzałka */
+.box-arrow {
+    position: relative;
+    z-index: 3;
+    color: #ffffff;
+    font-size: 28px;
+    align-self: center; /* Wyśrodkowanie strzałki w pionie */
+    transition: transform 0.4s ease; /* Płynne przesuwanie */
+}
+
+/* Efekt przesunięcia strzałki w bok po najechaniu */
+.nav-box:hover .box-arrow {
+    transform: translateX(8px); /* Przesuwa strzałkę o 8 pikseli w prawą stronę */
+}
+
+
+/*dla prawidłowej nawigacji:*/
+
+nav {
+    border-top: 1px solid #666666;    /* Jasnoszara linia na górze menu */
+    border-bottom: 1px solid #666666; /* Jasnoszara linia na dole menu */
+    padding: 15px 0;                  /* Odstęp między tekstem menu a liniami */
+    margin: 20px 0;                   /* Odstęp całego menu od reszty strony */
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Dedykowana zmiana zachowania elementów listy na poziome */
+nav li {
+    display: inline-block; /* Zmienia element pionowy (blokowy) w poziomy */
+    margin-right: 30px;    /* Tworzy odstęp po prawej stronie każdego elementu */
+}
+
+/* Usunięcie marginesu dla ostatniego elementu menu */
+nav li:last-child {
+    margin-right: 0;
+}
+
+/* Styl samych odnośników */
+nav a {
+    color: #333333;
+    text-decoration: none;
+    font-family: sans-serif;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #72222e;
+}
