@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Osteria – Proste jedzenie. Pięknie podane.</title>
+  <meta name="description" content="Sezonowa kuchnia włoska. Zarezerwuj stolik w Osterii.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="hero__content">
+    <a class="logo" href="#top" aria-label="Osteria"><span class="logo__mark">O</span><span class="logo__text">Osteria<small>Est. 2017</small></span></a>
+    <p class="eyebrow eyebrow--light">Sezonowa kuchnia włoska · Portland, Oregon</p>
+    <h1>Proste jedzenie.<br><em>Pięknie podane.</em></h1>
+    <p class="hero__lead">Osteria z sąsiedztwa, inspirowana długimi włoskimi obiadami, lokalnymi farmami i prostą radością wspólnego stołu.</p>
+
+    <nav class="hero__nav" aria-label="Główna nawigacja">
+      <a href="#historia">Nasza historia</a>
+      <a href="#menu">Menu</a>
+      <a href="#odwiedz">Odwiedź nas</a>
+      <a href="#kontakt">Kontakt</a>
+      <a href="#rezerwacja" class="btn btn--ghost btn--sm">Zarezerwuj stolik</a>
+    </nav>
+
+    <div class="hero__cards">
+      <a href="#rezerwacja" class="card-link">
+        <span class="card-link__text"><small>Zaplanuj wieczór</small><strong>Zarezerwuj stolik</strong></span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <a href="#menu" class="card-link">
+        <span class="card-link__text"><small>Z naszej kuchni</small><strong>Poznaj menu</strong></span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+  <div class="hero__foot">
+    <span>Kolacje wtorek–niedziela</span>
+    <a href="#historia" class="scroll-hint">Przewiń, aby odkryć</a>
+  </div>
+</header>
+
+<main>
+  <!-- FILOZOFIA -->
+  <section class="section philosophy" id="historia">
+    <div class="container philosophy__grid reveal">
+      <figure class="philosophy__figure">
+        <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=900&q=80" alt="Stół nakryty makaronem i winem" loading="lazy">
+        <figcaption class="badge"><small>Od</small><em>2017</em></figcaption>
+      </figure>
+      <div class="philosophy__text">
+        <p class="eyebrow">Nasza filozofia</p>
+        <h2>Z korzeniami we Włoszech, wyrosła w Oregonie.</h2>
+        <p class="lead-serif">Gotujemy to, co sami lubimy jeść: szczerze, hojnie i w zgodzie z porami roku.</p>
+        <p>Nasze menu zaczyna się na pobliskich farmach, a kończy przy Waszym stole. Makaron wałkujemy każdego popołudnia, chleb wychodzi ciepły z pieca, a każde danie powstaje z szacunkiem dla składników.</p>
+        <a href="#kontakt" class="text-link">Poznaj rodzinę <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section class="section menu" id="menu">
+    <div class="container container--narrow reveal">
+      <p class="eyebrow eyebrow--center">Z naszej kuchni</p>
+      <h2 class="center">Dzisiejsze menu</h2>
+      <p class="center menu__intro">Menu zmienia się wraz z rynkiem. Oto próbka tego, co dziś podajemy.</p>
+
+      <div class="tabs" role="tablist" aria-label="Kategorie menu">
+        <button class="tab" role="tab" aria-selected="false" data-tab="antipasti" id="t-antipasti">Antipasti</button>
+        <button class="tab is-active" role="tab" aria-selected="true" data-tab="pasta" id="t-pasta">Pasta</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="secondi" id="t-secondi">Secondi</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="dolci" id="t-dolci">Dolci</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-antipasti" aria-labelledby="t-antipasti" hidden>
+        <ul class="dishes">
+          <li><div class="dish__row"><h3>Burrata con Pomodori</h3><span class="dish__line"></span><span class="price">42 zł</span></div><p>Świeża burrata, pomidory heirloom, bazylia, oliwa</p><span class="tag">Wegetariańskie</span></li>
+          <li><div class="dish__row"><h3>Carpaccio di Manzo</h3><span class="dish__line"></span><span class="price">48 zł</span></div><p>Polędwica wołowa, rukola, parmezan, cytryna</p></li>
+          <li><div class="dish__row"><h3>Bruschetta al Pomodoro</h3><span class="dish__line"></span><span class="price">29 zł</span></div><p>Chleb z pieca, pomidory, czosnek, oliwa</p><span class="tag">Wegetariańskie</span></li>
+          <li><div class="dish__row"><h3>Fritto Misto</h3><span class="dish__line"></span><span class="price">52 zł</span></div><p>Smażone owoce morza, cytryna, aioli szafranowe</p><span class="tag">Hit szefa kuchni</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p-pasta" aria-labelledby="t-pasta">
+        <ul class="dishes">
+          <li><div class="dish__row"><h3>Tagliatelle al Ragù</h3><span class="dish__line"></span><span class="price">58 zł</span></div><p>Wolno duszona wołowina i wieprzowina, parmezan</p><span class="tag">Hit domu</span></li>
+          <li><div class="dish__row"><h3>Ravioli di Zucca</h3><span class="dish__line"></span><span class="price">54 zł</span></div><p>Masło brązowe, szałwia, amaretti, ocet balsamiczny</p><span class="tag">Wegetariańskie</span></li>
+          <li><div class="dish__row"><h3>Spaghetti alle Vongole</h3><span class="dish__line"></span><span class="price">62 zł</span></div><p>Małże, czosnek, białe wino, pietruszka</p></li>
+          <li><div class="dish__row"><h3>Rigatoni alla Norma</h3><span class="dish__line"></span><span class="price">52 zł</span></div><p>Bakłażan, pomidor, ricotta salata, bazylia</p><span class="tag">Wegetariańskie</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p-secondi" aria-labelledby="t-secondi" hidden>
+        <ul class="dishes">
+          <li><div class="dish__row"><h3>Bistecca alla Griglia</h3><span class="dish__line"></span><span class="price">96 zł</span></div><p>Grillowany antrykot, rozmaryn, ziemniaki z pieca</p><span class="tag">Hit domu</span></li>
+          <li><div class="dish__row"><h3>Branzino al Forno</h3><span class="dish__line"></span><span class="price">84 zł</span></div><p>Pieczony labraks, fenkuł, cytryna, kapary</p></li>
+          <li><div class="dish__row"><h3>Pollo al Limone</h3><span class="dish__line"></span><span class="price">68 zł</span></div><p>Kurczak w cytrynowym sosie, szałwia, cykoria</p></li>
+          <li><div class="dish__row"><h3>Melanzane Parmigiana</h3><span class="dish__line"></span><span class="price">56 zł</span></div><p>Bakłażan, mozzarella, sos pomidorowy, bazylia</p><span class="tag">Wegetariańskie</span></li>
+        </ul>
+      </div>
+      <div class="panel" role="tabpanel" id="p-dolci" aria-labelledby="t-dolci" hidden>
+        <ul class="dishes">
+          <li><div class="dish__row"><h3>Tiramisù</h3><span class="dish__line"></span><span class="price">32 zł</span></div><p>Mascarpone, espresso, savoiardi, kakao</p><span class="tag">Hit domu</span></li>
+          <li><div class="dish__row"><h3>Panna Cotta</h3><span class="dish__line"></span><span class="price">28 zł</span></div><p>Wanilia, sezonowe owoce, miód</p><span class="tag">Wegetariańskie</span></li>
+          <li><div class="dish__row"><h3>Cannoli Siciliani</h3><span class="dish__line"></span><span class="price">30 zł</span></div><p>Ricotta, pistacje, kandyzowana pomarańcza</p></li>
+          <li><div class="dish__row"><h3>Affogato</h3><span class="dish__line"></span><span class="price">26 zł</span></div><p>Lody waniliowe, espresso, amaretto</p><span class="tag">Wegetariańskie</span></li>
+        </ul>
+      </div>
+
+      <p class="menu__note">Prosimy o informację o alergiach. Przy grupach od 6 osób doliczamy 20% opłaty serwisowej.</p>
+    </div>
+  </section>
+
+  <!-- CYTAT -->
+  <section class="gather">
+    <div class="gather__img" role="img" aria-label="Wspólna kolacja przy świecach"></div>
+    <div class="gather__text reveal">
+      <svg class="leaf" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M20 4C9 4 4 9 4 16c0 1.5.3 2.8.8 4C6 14 10 11 15 9c-4 3-7 6-8.5 11.5C8 20.800 9.800 21 11 21c7 0 9-6 9-17z"/></svg>
+      <p class="eyebrow eyebrow--gold">Razem przy stole</p>
+      <blockquote>„Stół to miejsce, gdzie pamiętamy o tym, co ważne."</blockquote>
+      <p class="gather__p">Urodziny, rocznice, wtorkowe wieczory – zawsze jest powód, by się spotkać. Dla grup od ośmiu osób zapytaj o menu w stylu rodzinnym.</p>
+      <a href="#rezerwacja" class="text-link text-link--light">Zaplanuj spotkanie <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+
+  <!-- REZERWACJA -->
+  <section class="section reservation" id="rezerwacja">
+    <div class="container reservation__grid reveal">
+      <div class="reservation__intro">
+        <p class="eyebrow">Twój stolik czeka</p>
+        <h2>Dołącz do nas.</h2>
+        <p>Rezerwacji można dokonać do 30 dni z wyprzedzeniem. Kilka miejsc przy barze zawsze zostawiamy dla gości bez rezerwacji.</p>
+        <p class="questions">Pytania? <a href="tel:+15035550182">(503) 555-0182</a></p>
+      </div>
+
+      <form class="form" id="reservation-form" novalidate>
+        <div class="field">
+          <label for="name">Imię i nazwisko</label>
+          <input type="text" id="name" name="name" placeholder="Jan Kowalski" autocomplete="name" required>
+          <span class="error" id="err-name" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="jan@example.com" autocomplete="email" required>
+          <span class="error" id="err-email" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="phone">Telefon</label>
+          <input type="tel" id="phone" name="phone" placeholder="+48 600 700 800" autocomplete="tel" required>
+          <span class="error" id="err-phone" role="alert"></span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="date">Data</label>
+            <input type="date" id="date" name="date" required>
+            <span class="error" id="err-date" role="alert"></span>
+          </div>
+          <div class="field">
+            <label for="time">Godzina</label>
+            <input type="time" id="time" name="time" min="17:00" max="22:00" step="900" required>
+            <span class="error" id="err-time" role="alert"></span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="guests">Liczba osób</label>
+          <select id="guests" name="guests" required>
+            <option value="1">1 osoba</option>
+            <option value="2" selected>2 osoby</option>
+            <option value="3">3 osoby</option>
+            <option value="4">4 osoby</option>
+            <option value="5">5 osób</option>
+            <option value="6">6 osób</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn--dark">Potwierdź rezerwację <span aria-hidden="true">→</span></button>
+        <p class="form__note">Dla grup powyżej 6 osób prosimy o kontakt telefoniczny.</p>
+        <p class="success" id="success" role="status" aria-live="polite" hidden></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="find" id="odwiedz">
+  <div class="find__img" role="img" aria-label="Aperol spritz i makaron na stole"></div>
+  <div class="find__text" id="kontakt">
+    <p class="eyebrow eyebrow--gold">Znajdź nas</p>
+    <h2>Mały zakątek Włoch.</h2>
+    <div class="find__info">
+      <div>
+        <h3>Adres</h3>
+        <address>418 SE Division Street<br>Portland, Oregon 97202</address>
+      </div>
+      <div>
+        <h3>Godziny</h3>
+        <p>Wtorek–czwartek 17–22<br>Piątek–niedziela 17–23</p>
+      </div>
+      <div>
+        <h3>Kontakt</h3>
+        <p><a href="tel:+15035550182">(503) 555-0182</a><br><a href="mailto:ciao@osteria.example">ciao@osteria.example</a></p>
+      </div>
+      <div>
+        <h3>Social media</h3>
+        <ul class="social">
+          <li><a href="#" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.500" cy="6.500" r=".8" fill="currentColor"/></svg></a></li>
+          <li><a href="#" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a></li>
+        </ul>
+      </div>
+    </div>
+    <a class="btn btn--ghost" href="https://maps.google.com/?q=418+SE+Division+Street+Portland+Oregon" target="_blank" rel="noopener">Wyznacz trasę <span aria-hidden="true">→</span></a>
+    <p class="copy">© 2026 Osteria. Wszelkie prawa zastrzeżone.</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
+
