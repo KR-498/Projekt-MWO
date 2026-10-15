@@ -1,20 +1,6 @@
 (() => {
   'use strict';
 
-  /* ---------- Zakładki menu ---------- */
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => {
-        const active = t === tab;
-        t.classList.toggle('is-active', active);
-        t.setAttribute('aria-selected', active);
-        document.getElementById('p-' + t.dataset.tab).hidden = !active;
-      });
-    });
-  });
-
-  /* ---------- Animacje fade-in przy przewijaniu ---------- */
   const revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
@@ -27,12 +13,10 @@
     revealEls.forEach(el => el.classList.add('is-visible'));
   }
 
-  /* ---------- Formularz rezerwacji ---------- */
   const form = document.getElementById('reservation-form');
   const success = document.getElementById('success');
   const dateInput = document.getElementById('date');
 
-  // Zakres dat: od dziś do 30 dni w przód
   const fmt = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const today = new Date();
   const max = new Date(); max.setDate(max.getDate() + 30);
