@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Osteria – Proste jedzenie. Pięknie podane.</title>
+  <meta name="description" content="Sezonowa kuchnia włoska. Zarezerwuj stolik w Osterii.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="reservation_style.css">
+</head>
+<body>
+
+<main>
+  <section class="section reservation" id="rezerwacja">
+    <div class="container reservation__grid reveal">
+      <div class="reservation__intro">
+        <p class="eyebrow">Twój stolik czeka</p>
+        <h2>Dołącz do nas.</h2>
+        <p>Rezerwacji można dokonać do 30 dni z wyprzedzeniem. Kilka miejsc przy barze zawsze zostawiamy dla gości bez rezerwacji.</p>
+        <p class="questions">Pytania? <a href="tel:+15035550182">(503) 555-0182</a></p>
+      </div>
+
+      <form class="form" id="reservation-form" novalidate>
+        <div class="field">
+          <label for="name">Imię i nazwisko</label>
+          <input type="text" id="name" name="name" placeholder="Jan Kowalski" autocomplete="name" required>
+          <span class="error" id="err-name" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="jan@example.com" autocomplete="email" required>
+          <span class="error" id="err-email" role="alert"></span>
+        </div>
+        <div class="field">
+          <label for="phone">Telefon</label>
+          <input type="tel" id="phone" name="phone" placeholder="+48 600 700 800" autocomplete="tel" required>
+          <span class="error" id="err-phone" role="alert"></span>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="date">Data</label>
+            <input type="date" id="date" name="date" required>
+            <span class="error" id="err-date" role="alert"></span>
+          </div>
+          <div class="field">
+            <label for="time">Godzina</label>
+            <input type="time" id="time" name="time" min="17:00" max="22:00" step="900" required>
+            <span class="error" id="err-time" role="alert"></span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="guests">Liczba osób</label>
+          <select id="guests" name="guests" required>
+            <option value="1">1 osoba</option>
+            <option value="2" selected>2 osoby</option>
+            <option value="3">3 osoby</option>
+            <option value="4">4 osoby</option>
+            <option value="5">5 osób</option>
+            <option value="6">6 osób</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn--dark">Potwierdź rezerwację <span aria-hidden="true">→</span></button>
+        <p class="form__note">Dla grup powyżej 6 osób prosimy o kontakt telefoniczny.</p>
+        <p class="success" id="success" role="status" aria-live="polite" hidden></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="find" id="odwiedz">
+  <div class="find__img" role="img" aria-label="Aperol spritz i makaron na stole"></div>
+  <div class="find__text" id="kontakt">
+    <p class="eyebrow eyebrow--gold">Znajdź nas</p>
+    <h2>Mały zakątek Włoch.</h2>
+    <div class="find__info">
+      <div>
+        <h3>Adres</h3>
+        <address>418 SE Division Street<br>Portland, Oregon 97202</address>
+      </div>
+      <div>
+        <h3>Godziny</h3>
+        <p>Wtorek–czwartek 17–22<br>Piątek–niedziela 17–23</p>
+      </div>
+      <div>
+        <h3>Kontakt</h3>
+        <p><a href="tel:+15035550182">(503) 555-0182</a><br><a href="mailto:ciao@osteria.example">ciao@osteria.example</a></p>
+      </div>
+      <div>
+        <h3>Social media</h3>
+        <ul class="social">
+          <li><a href="#" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.500" cy="6.500" r=".8" fill="currentColor"/></svg></a></li>
+          <li><a href="#" aria-label="Facebook"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8z"/></svg></a></li>
+        </ul>
+      </div>
+    </div>
+    <a class="btn btn--ghost" href="https://maps.google.com/?q=418+SE+Division+Street+Portland+Oregon" target="_blank" rel="noopener">Wyznacz trasę <span aria-hidden="true">→</span></a>
+    <p class="copy">© 2026 Osteria. Wszelkie prawa zastrzeżone.</p>
+  </div>
+</footer>
+
+<script src="reservation_script.js"></script>
+</body>
+</html>
+
