@@ -1,120 +1,758 @@
-/* Główny kontener przycisku */
-.nav-box {
-  position: relative;
-  display: flex;
-  align-items: flex-end; /* Tekst na dole przycisku */
-  justify-content: space-between; /* Rozsuwa tekst i strzałkę na boki */
-  width: 450px;
-  height: 180px;
-  padding: 30px;
-  text-decoration: none;
-  overflow: hidden; /* Obcina wszystko, co wystaje poza przycisk */
-  font-family: sans-serif;
+@import url("https://googleapis.com");
+@import "tailwindcss";
+
+:root {
+  --cream: #f5f0e7;
+  --paper: #fbf8f2;
+  --ink: #25231f;
+  --muted: #69645c;
+  --wine: #6e1f2a;
+  --wine-dark: #511620;
+  --olive: #5d6044;
+  --line: #d9d0c3;
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "DM Sans", Arial, sans-serif;
 }
 
-/* Warstwa z obrazkiem w tle */
-.box-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* --- REGUŁY PODSTAWOWE --- */
+* {
+  box-sizing: border-box;
+  margin: 0;   /* Wymuszony reset marginesów dla każdego elementu */
+  padding: 0;  /* Wymuszony reset paddingów (likwiduje stare padding: 20px z body) */
+}
+
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
   width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
+  overflow-x: hidden; /* Zabezpiecza przed pojawianiem się poziomych pasków przewijania */
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
+button {
+  color: inherit;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 64px));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: 120px;
+}
+
+/* --- HERO SECTION (STRONA GŁÓWNA) --- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  height: auto;
+  padding-bottom: 80px; /* Zwiększony margines na dole, by drugi kafel miał ładny oddech */
+  margin: 0 !important; /* Gwarancja braku marginesów zewnętrznych */
+  color: white;
+  background:
+    linear-gradient(90deg, rgba(24, 18, 13, 0.82) 0%, rgba(24, 18, 13, 0.50) 49%, rgba(24, 18, 13, 0.15) 100%),
+    url("res/background-img.avif") center 54% / cover;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 12px solid rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+/* --- INTEGRACJA MENU Z nav.js --- */
+#hednav {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.site-brand {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 5;
+}
+
+.nav {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.brand {
+  background: none;
+  border: 0;
+  display: flex;
+  color: white;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: italic 500 26px/1 var(--serif);
+}
+
+.brand strong, .brand small {
+  display: block;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+}
+
+.brand strong { font-size: 14px; }
+.brand small { font-size: 9px; margin-top: 5px; opacity: 0.75; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.nav-links button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: white;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-links .nav-reserve {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  padding: 13px 20px;
+  transition: 180ms ease;
+}
+
+.nav-links .nav-reserve:hover {
+  background: white;
+  color: var(--ink);
+}
+
+.menu-toggle {
+  display: none;
+}
+/* --- ELEMENTY TREŚCI POWITALNEJ (HERO) --- */
+.hero-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding-top: 50px;
+  position: relative;
   z-index: 1;
 }
 
-/* Nakładka przyciemniająco-czerwona */
-.box-overlay {
+.hero h1 {
+  margin: 0;
+  max-width: 780px;
+  font: 500 clamp(64px, 7.2vw, 108px) / 0.93 var(--serif);
+  letter-spacing: -0.045em;
+}
+
+.hero h1 em {
+  color: #ead6c0;
+  font-weight: 500;
+}
+
+.hero-copy {
+  max-width: 560px;
+  margin: 32px 0 38px;
+  font-size: 17px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.83);
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  color: var(--wine);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.eyebrow.light {
+  color: #e8c7a7;
+}
+
+/* --- UKŁAD KAFLI STARTOWYCH (Jeden pod drugim, do lewej) --- */
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+}
+
+.hero-action {
+  position: relative;
+  width: min(430px, 100%);
+  min-height: 112px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  padding: 24px 28px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: pointer;
+  background-position: center;
+  background-size: cover;
+  isolation: isolate;
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.hero-action::before {
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(25, 18, 14, 0.83), rgba(25, 18, 14, 0.3));
+  transition: background 180ms ease;
+}
+
+.hero-action:hover {
+  transform: translateX(6px);
+  border-color: white;
+}
+
+.hero-action:hover::before {
+  background: linear-gradient(90deg, rgba(81, 22, 32, 0.9), rgba(25, 18, 14, 0.36));
+}
+
+.reserve-action {
+  background-image: url("res/reservation-img.avif");
+}
+
+.menu-action {
+  background-image: url("res/menu-img.avif");
+}
+
+.hero-action span {
+  display: grid;
+  gap: 7px;
+  font: 500 24px var(--serif);
+}
+
+.hero-action small {
+  font: 600 9px var(--sans);
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: #e8c7a7;
+}
+
+.hero-action svg {
+  width: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
+/* --- KROPKOWANE MENU I LISTA POTRAW --- */
+.menu-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  padding: 0 4px 16px;
+  margin-bottom: -1px;
+  color: var(--muted);
+  font: 500 16px var(--serif);
+  cursor: pointer;
+}
+
+.menu-tabs button.active {
+  color: var(--wine);
+  border-color: var(--wine);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 80px;
+}
+
+.menu-item {
+  min-height: 126px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.dish-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dish-line h3, .dish-line strong {
+  font: 500 20px var(--serif);
+  margin: 0;
+}
+
+.dish-line span {
+  height: 1px;
+  border-top: 1px dotted #afa598;
+  flex: 1;
+}
+
+.menu-item p {
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+
+.menu-item small {
+  display: inline-block;
+  margin-top: 9px;
+  color: var(--wine);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* --- SEKCJE PREZENTACYJNE O NAS (FEATURE) --- */
+.feature {
+  min-height: 690px;
+  display: grid;
+  grid-template-columns: 1.14fr 0.86fr;
+}
+
+.feature-image img, .visit-image img {
   width: 100%;
   height: 100%;
-  /* Domyślnie ciemna, lekko brązowo-czerwona warstwa */
-  background-color: rgba(44, 23, 23, 0.6);
-  z-index: 2;
-  transition: background-color 0.4s ease; /* Płynna zmiana koloru */
-}
-
-/* Zmiana koloru nakładki po najechaniu myszką */
-.nav-box:hover .box-overlay {
-  /* Po najechaniu robi się bardziej wyraźna i czerwona (zwiększamy krycie) */
-  background-color: rgba(114, 34, 46, 0.75);
-}
-
-/* Treść (teksty) */
-.box-content {
-  position: relative;
-  z-index: 3;
-  color: #ffffff;
-}
-
-.box-subtitle {
+  object-fit: cover;
   display: block;
-  font-size: 11px;
-  letter-spacing: 2px;
+  filter: saturate(0.8);
+}
+
+.feature-copy {
+  background: var(--wine);
+  color: white;
+  padding: 80px clamp(50px, 7vw, 110px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feature-copy blockquote {
+  margin: 0;
+  font: italic 500 clamp(38px, 4vw, 60px) / 1.15 var(--serif);
+  letter-spacing: -0.025em;
+}
+
+.feature-copy > p:not(.eyebrow) {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 500px;
+  margin: 30px 0;
+}
+/* --- SEKCJA I FORMULARZ REZERWACJI --- */
+.reservation {
+  background: var(--paper);
+}
+
+.reservation-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(70px, 11vw, 150px);
+}
+
+.reservation-intro > p:not(.eyebrow) {
+  margin: 28px 0 38px;
+  color: var(--muted);
+  line-height: 1.75;
+  max-width: 440px;
+}
+
+.reservation-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px 20px;
+  padding: 42px;
+  background: var(--cream);
+  border-top: 3px solid var(--wine);
+}
+
+.reservation-form > label,
+.reservation-form > .form-row,
+.reservation-form > .button,
+.reservation-form > small {
+  grid-column: 1 / -1;
+}
+
+.reservation-form label {
+  display: grid;
+  gap: 9px;
+}
+
+.reservation-form label > span {
   text-transform: uppercase;
-  color: #d1b499; /* Złoty/beżowy odcień tekstu pomocniczego */
-  margin-bottom: 8px;
+  letter-spacing: 0.12em;
+  font-size: 9px;
+  font-weight: 600;
 }
 
-.box-title {
-  margin: 0;
-  font-size: 28px;
-  font-weight: normal;
-  font-family: "Georgia", serif; /* Szeryfowy font jak na zdjęciu */
+.reservation-form input,
+.reservation-form select {
+  appearance: none;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #bbb1a5;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 10px 0 13px;
+  outline: none;
 }
 
-/* Strzałka */
-.box-arrow {
-  position: relative;
-  z-index: 3;
-  color: #ffffff;
-  font-size: 28px;
-  align-self: center; /* Wyśrodkowanie strzałki w pionie */
-  transition: transform 0.4s ease; /* Płynne przesuwanie */
+.reservation-form input:focus,
+.reservation-form select:focus {
+  border-color: var(--wine);
 }
 
-/* Efekt przesunięcia strzałki w bok po najechaniu */
-.nav-box:hover .box-arrow {
-  transform: translateX(8px); /* Przesuwa strzałkę o 8 pikseli w prawą stronę */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
 }
 
-/*dla prawidłowej nawigacji:*/
-
-nav {
-  border-top: 1px solid #666666; /* Jasnoszara linia na górze menu */
-  border-bottom: 1px solid #666666; /* Jasnoszara linia na dole menu */
-  padding: 15px 0; /* Odstęp między tekstem menu a liniami */
-  margin: 20px 0; /* Odstęp całego menu od reszty strony */
+/* --- DRUGI WARIANT WIZYTÓWKI (Wizyta w Lokalu) --- */
+.visit {
+  min-height: 600px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
-nav ul {
-  list-style-type: none;
-  margin: 0;
+.visit-details {
+  background: var(--olive);
+  color: white;
+  padding: 90px clamp(50px, 8vw, 130px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.visit-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin: 48px 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.18);
+  padding-block: 30px;
+}
+
+.visit-info span {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #ddd4b7;
+}
+
+.visit-info p {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+/* --- ELEGANCKA STOPKA STRONY (Footer) --- */
+footer {
+  color: #d8d2c7;
+  background: #1e1d1a;
+  padding: 62px 0 26px;
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr auto;
+  align-items: center;
+  gap: 40px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-brand strong {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.footer-brand p {
+  color: #88857f;
+  font: italic 500 14px var(--serif);
+  margin: 6px 0 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-links button {
+  color: #aaa69e;
+  font-size: 11px;
   padding: 0;
 }
 
-/* Dedykowana zmiana zachowania elementów listy na poziome */
-nav li {
-  display: inline-block; /* Zmienia element pionowy (blokowy) w poziomy */
-  margin-right: 30px; /* Tworzy odstęp po prawej stronie każdego elementu */
+.socials {
+  display: flex;
+  gap: 10px;
 }
 
-/* Usunięcie marginesu dla ostatniego elementu menu */
-nav li:last-child {
-  margin-right: 0;
-}
-
-/* Styl samych odnośników */
-nav a {
-  color: #333333;
+.socials a {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #57544f;
+  color: #c9c4bb;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   text-decoration: none;
-  font-family: sans-serif;
-  transition: color 0.3s;
+  font: 500 12px var(--serif);
 }
 
-nav a:hover {
-  color: #72222e;
+.footer-bottom {
+  border-top: 1px solid #373531;
+  margin-top: 50px;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  color: #706d68;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- WSPARCIE DLA EKRANÓW MOBILNYCH (Media Queries) --- */
+@media (max-width: 900px) {
+  .shell {
+    width: min(100% - 40px, 680px);
+  }
+  .section {
+    padding-block: 88px;
+  }
+  .nav {
+    height: 58px;
+    width: min(430px, 100%);
+    justify-content: flex-end;
+  }
+  .site-brand {
+    height: 54px;
+  }
+  .menu-toggle {
+    display: grid;
+    gap: 7px;
+    background: none;
+    border: 0;
+    padding: 10px 0 10px 10px;
+    z-index: 7;
+  }
+  .menu-toggle span {
+    width: 28px;
+    height: 1px;
+    background: white;
+    transition: 180ms ease;
+  }
+  .nav-links {
+    position: fixed;
+    inset: 0;
+    background: var(--wine-dark);
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: 180ms ease;
+    z-index: 6;
+  }
+  .nav-links.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .nav-links button {
+    font: 500 28px var(--serif);
+  }
+  .nav-links .nav-reserve {
+    font: 600 12px var(--sans);
+    margin-top: 15px;
+  }
+  .hero {
+    min-height: 850px;
+    background-position: 62% center;
+  }
+  .hero h1 {
+    font-size: clamp(56px, 12vw, 82px);
+  }
+  .hero-content {
+    padding-top: 34px;
+  }
+  .hero-copy {
+    max-width: 480px;
+  }
+  .menu-grid,
+  .feature,
+  .reservation-grid,
+  .visit {
+    grid-template-columns: 1fr;
+  }
+  .feature-image,
+  .visit-image {
+    min-height: 520px;
+  }
+  .feature-copy,
+  .visit-details {
+    padding-block: 85px;
+  }
+  .reservation-grid {
+    gap: 55px;
+  }
+  .footer-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .shell {
+    width: calc(100% - 36px);
+  }
+  .section {
+    padding-block: 72px;
+  }
+  .hero {
+    min-height: 760px;
+  }
+  .hero::after {
+    border-width: 7px;
+  }
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+  .hero h1 {
+    font-size: 52px;
+  }
+  .hero-copy {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .hero-actions {
+    gap: 16px;
+  }
+  .hero-action {
+    min-height: 96px;
+    padding: 20px;
+  }
+  .hero-action span {
+    font-size: 21px;
+  }
+  .scroll-cue {
+    display: none;
+  }
+  .menu-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 30px;
+    margin: 42px 0 20px;
+    scrollbar-width: none;
+  }
+  .feature-image,
+  .visit-image {
+    min-height: 390px;
+  }
+  .feature-copy,
+  .visit-details {
+    padding: 68px 28px;
+  }
+  .feature-copy blockquote {
+    font-size: 38px;
+  }
+  .reservation-form {
+    padding: 30px 22px;
+  }
+  .form-row,
+  .visit-info {
+    grid-template-columns: 1fr;
+  }
+  .visit-info {
+    gap: 24px;
+  }
+  .footer-links {
+    flex-wrap: wrap;
+  }
+  .footer-bottom {
+    gap: 12px;
+    flex-direction: column;
+  }
+}
+.nav-links a {
+  color: white;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 180ms ease;
+  border: 1px solid transparent; /* Rezerwuje przestrzeń na ramkę dla każdego linku */
+  padding: 13px 20px;
+}
+.nav-links a:hover {
+  color: #e8c7a7;
+}
+.nav-links a.nav-reserve {
+  border: 1px solid rgba(255, 255, 255, 0.7); /* Biała ramka obecnej strony */
+}
+.nav-links a.nav-reserve:hover {
+  background: white;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
