@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Osteria – Proste jedzenie. Pięknie podane.</title>
+    <meta
+      name="description"
+      content="Sezonowa kuchnia włoska. Zarezerwuj stolik w Osterii."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="reservation_style.css" />
+  </head>
+  <body class="subpage">
+    <div class="shell" style="margin-top: 20px">
+      <header id="hednav"></header>
+    </div>
+
+    <main>
+      <section class="section reservation" id="rezerwacja">
+        <div class="container reservation__grid reveal">
+          <div class="reservation__intro">
+            <p class="eyebrow">Twój stolik czeka</p>
+            <h2>Dołącz do nas.</h2>
+            <p>
+              Rezerwacji można dokonać do 30 dni z wyprzedzeniem. Kilka miejsc
+              przy barze zawsze zostawiamy dla gości bez rezerwacji.
+            </p>
+            <p class="questions">
+              Pytania? <a href="tel:+15035550182">(503) 555-0182</a>
+            </p>
+          </div>
+
+          <form
+            class="form"
+            id="reservation-form"
+            action="#potwierdzenie"
+            method="get"
+          >
+            <div class="field">
+              <label for="name">Imię i nazwisko</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Jan Kowalski"
+                autocomplete="name"
+                minlength="3"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="jan@example.com"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="phone">Telefon</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="+48 600 700 800"
+                autocomplete="tel"
+                pattern="\+?[\d\s()\-]{9,}"
+                required
+              />
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="date">Data</label>
+                <input type="date" id="date" name="date" required />
+              </div>
+              <div class="field">
+                <label for="time">Godzina</label>
+                <input
+                  type="time"
+                  id="time"
+                  name="time"
+                  min="17:00"
+                  max="22:00"
+                  step="900"
+                  required
+                />
+              </div>
+            </div>
+            <div class="field">
+              <label for="guests">Liczba osób</label>
+              <select id="guests" name="guests" required>
+                <option value="1">1 osoba</option>
+                <option value="2" selected>2 osoby</option>
+                <option value="3">3 osoby</option>
+                <option value="4">4 osoby</option>
+                <option value="5">5 osób</option>
+                <option value="6">6 osób</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn--dark">
+              Potwierdź rezerwację <span aria-hidden="true">→</span>
+            </button>
+            <p class="form__note">
+              Dla grup powyżej 6 osób prosimy o kontakt telefoniczny.
+            </p>
+            <p class="success" id="potwierdzenie" role="status">
+              Dziękujemy! Twoja rezerwacja została przyjęta.
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="nav.js"></script>
+  </body>
+</html>
