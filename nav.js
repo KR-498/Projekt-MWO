@@ -1,12 +1,43 @@
 const navmenu = `
-      <h3 style="font-size: 32px; margin-bottom: 5px;">wspaniały tytuł restauracji</h3>
-      <h4 style="font-size: 16px; color: gray;">równie wspaniały tymczasowy dolny opis</h4>
-      <nav>
-        <ul>    
-            <li><a href="index.html">Główna</a></li>
-            <li><a href="about.html">O nas</a></li>
-            <li><a href="reservation.html">Rezerwacje</a></li>
-            <li><a href="contact.html">Kontakt</a></li>
-        </ul>
-        </nav>`;
+  <div class="site-brand">
+    <button class="brand">
+      <div class="brand-mark">S</div>
+      <div>
+        <strong>WSPANIAŁY TYTUŁ</strong>
+        <small>RESTAURACJA</small>
+      </div>
+    </button>
+  </div>
+  <nav class="nav">
+    <div class="nav-links">    
+      <a href="index.html" id="nav-home">Główna</a>
+      <a href="about.html" id="nav-about">O nas</a>
+      <a href="reservation.html" id="nav-reservation">Rezerwacje</a>
+      <a href="contact.html" id="nav-contact">Kontakt</a>
+    </div>
+  </nav>`;
+
+// 2. Wstrzykujemy menu do nagłówka strony
 document.getElementById("hednav").innerHTML = navmenu;
+
+// 3. Automatyczne wykrywanie obecnej strony i przypisywanie ramki
+const currentPath = window.location.pathname;
+
+// Resetujemy klasę ramki na start
+document.getElementById("nav-home").classList.remove("nav-reserve");
+document.getElementById("nav-about").classList.remove("nav-reserve");
+document.getElementById("nav-reservation").classList.remove("nav-reserve");
+document.getElementById("nav-contact").classList.remove("nav-reserve");
+
+// Przypisujemy ramkę w zależności od pliku, w którym się znajdujemy
+if (currentPath.includes("about.html")) {
+  document.getElementById("nav-about").classList.add("nav-reserve");
+} else if (currentPath.includes("reservation.html")) {
+  document.getElementById("nav-reservation").classList.add("nav-reserve");
+} else if (currentPath.includes("contact.html")) {
+  document.getElementById("nav-contact").classList.add("nav-reserve");
+} else if (currentPath.includes("index.html") || currentPath === "/" || currentPath.endsWith("/")) {
+  // Jeśli jesteśmy na głównej, możemy opcjonalnie podświetlić "Główna" 
+  // lub zostawić menu całkowicie bez ramek. Jeśli chcesz ramkę na głównej, odkomentuj poniższą linię:
+   document.getElementById("nav-home").classList.add("nav-reserve");
+}

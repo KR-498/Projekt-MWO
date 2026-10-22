@@ -3,51 +3,55 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tytuł</title>
-    <link rel="stylesheet" href="tmpCss.css" />
+    <title>Strona Główna | Ekskluzywna Restauracja</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header id="hednav">
+
+    <!-- Główny baner powitalny (Hero Section) -->
+    <header class="hero">
+      
+      <!-- DODANY KONTENER Z FIGMY, KTÓRY TRZYMA MARGINESY I POZYCJĘ -->
+      <div class="shell hero-content">
+        
+        <!-- Miejsce na nagłówek wstrzykiwany przez JavaScript -->
+        <div id="hednav"></div>
+
+        <p class="eyebrow light">Zapraszamy</p>
+        <h1>Tradycja spotyka <em>nowoczesność</em></h1>
+        <p class="hero-copy">Odkryj unikalne smaki komponowane z lokalnych, świeżych składników przez naszych mistrzów kuchni.</p>
+
+        <!-- KAFLE NAWIGACYJNE: Ułożone pionowo, dosunięte do lewej -->
+        <div class="hero-actions">
+          
+          <!-- Kafel 1: Menu -->
+          <a href="menu.html" class="hero-action menu-action">
+            <span>
+              <small>Nasze specjały</small>
+              Otwórz Menu
+            </span>
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+
+          <!-- Kafel 2: Rezerwacje -->
+          <a href="reservation.html" class="hero-action reserve-action">
+            <span>
+              <small>Wolisz na miejscu?</small>
+              Rezerwuj stolik
+            </span>
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+
+        </div>
+      </div>
+      
+      <!-- Dolna belka informacyjna -->
+      <div class="shell hero-foot">
+        <span></span>
+        <span>Premium Dining Experience</span>
+      </div>
     </header>
-    <main>
-      <a href="#" class="nav-box">
-        <!-- Obrazek w tle -->
-        <div
-          class="box-bg"
-          style="background-image: url(&quot;twoje-zdjecie.jpg&quot;)"
-        ></div>
 
-        <!-- Czerwona nakładka, która zmienia się po najechaniu -->
-        <div class="box-overlay"></div>
-
-        <!-- Treść przycisku -->
-        <div class="box-content">
-          <span class="box-subtitle">Nasze specjały</span>
-          <h2 class="box-title">Otwórz Menu</h2>
-        </div>
-        <!-- Strzałka, która przesunie się w bok -->
-        <span class="box-arrow">&rarr;</span>
-      </a>
-      <br />
-      <a href="reservation.html" class="nav-box">
-        <!-- Obrazek w tle -->
-        <div
-          class="box-bg"
-          style="background-image: url(&quot;twoje-zdjecie.jpg&quot;)"
-        ></div>
-
-        <!-- Czerwona nakładka, która zmienia się po najechaniu -->
-        <div class="box-overlay"></div>
-
-        <!-- Treść przycisku -->
-        <div class="box-content">
-          <span class="box-subtitle">Wolisz na miejscu?</span>
-          <h2 class="box-title">Rezerwój stolik</h2>
-        </div>
-        <!-- Strzałka,  która przesunie się w bok -->
-        <span class="box-arrow">&rarr;</span>
-      </a>
-    </main>
     <script src="nav.js"></script>
   </body>
 </html>
