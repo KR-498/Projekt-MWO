@@ -13,7 +13,7 @@ const navmenu = `
       <a href="index.html" id="nav-home">Główna</a>
       <a href="about.html" id="nav-about">O nas</a>
       <a href="reservation.html" id="nav-reservation">Rezerwacje</a>
-      <a href="contact.html" id="nav-contact">Kontakt</a>
+      <a href="kontakt.html" id="nav-contact">Kontakt</a>
     </div>
   </nav>`;
 
