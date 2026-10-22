@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontakt — Osteria Del Sole</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_kontakt.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-badge">O</div>
+            <div class="logo-text">
+                <span class="brand-name">OSTERIA</span>
+                <span class="brand-sub">DEL SOLE</span>
+            </div>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Our story</a>
+            <a href="menu.html">Menu</a>
+            <a href="visit.html">Visit</a>
+            <a href="kontakt.html" class="active">Contact</a>
+        </nav>
+        <a href="#formularz" class="btn-reserve">Reserve a table</a>
+    </header>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <p class="subtitle-tag">GET IN TOUCH</p>
+            <h1 class="page-title">Skontaktuj się z nami</h1>
+            <p class="hero-description">
+                Zapraszamy do kontaktu w sprawie rezerwacji stolików, organizacji prywatnych wydarzeń oraz przekazywania opinii na temat naszej obsługi.
+            </p>
+        </div>
+    </section>
+
+    <main class="main-content">
+        <div class="contact-grid">
+            
+            <aside class="contact-details">
+                <div class="detail-block">
+                    <h2>Lokalizacja</h2>
+                    <p>ul. Smakowita 12</p>
+                    <p>31-001 Kraków, Polska</p>
+                </div>
+
+                <div class="detail-block">
+                    <h2>Godziny otwarcia</h2>
+                    <p class="caption">DINNER TUESDAY — SUNDAY</p>
+                    <p>Wtorek — Czwartek: 17:00 — 22:30</p>
+                    <p>Piątek — Sobota: 17:00 — 23:30</p>
+                    <p>Niedziela: 16:00 — 21:30</p>
+                    <p class="note">Poniedziałek: Zamknięte</p>
+                </div>
+
+                <div class="detail-block">
+                    <h2>Bezpośredni kontakt</h2>
+                    <p>Telefon: <a href="tel:+48123456789">+48 123 456 789</a></p>
+                    <p>E-mail: <a href="mailto:kontakt@osteriadelsole.pl">kontakt@osteriadelsole.pl</a></p>
+                </div>
+            </aside>
+
+            <section class="form-section" id="formularz">
+                <h2>Formularz kontaktowy</h2>
+                
+                <form action="#" method="POST" class="contact-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Imię i Nazwisko *</label>
+                            <input type="text" id="name" name="name" required placeholder="np. Jan Kowalski">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Adres E-mail *</label>
+                            <input type="email" id="email" name="email" required placeholder="jan.kowalski@example.com">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Numer telefonu</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+48 000 000 000">
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Temat wiadomości *</label>
+                            <select id="subject" name="subject" required>
+                                <option value="" disabled selected>Wybierz temat...</option>
+                                <option value="rezerwacja">Rezerwacja stolika</option>
+                                <option value="wydarzenie">Prywatne wydarzenie</option>
+                                <option value="opinia_obsluga">Opinie, sugestie lub skargi dotyczące obsługi</option>
+                                <option value="pytanie">Zapytanie ogólne</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Treść wiadomości *</label>
+                        <textarea id="message" name="message" rows="5" required placeholder="Napisz swoją wiadomość..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-button">Wyślij wiadomość</button>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 Osteria Del Sole. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
