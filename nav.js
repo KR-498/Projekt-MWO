@@ -34,7 +34,7 @@ if (currentPath.includes("about.html")) {
   document.getElementById("nav-about").classList.add("nav-reserve");
 } else if (currentPath.includes("reservation.html")) {
   document.getElementById("nav-reservation").classList.add("nav-reserve");
-} else if (currentPath.includes("contact.html")) {
+} else if (currentPath.includes("kontakt.html")) {
   document.getElementById("nav-contact").classList.add("nav-reserve");
 } else if (currentPath.includes("index.html") || currentPath === "/" || currentPath.endsWith("/")) {
   // Jeśli jesteśmy na głównej, możemy opcjonalnie podświetlić "Główna" 
