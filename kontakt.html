@@ -4,106 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kontakt — Osteria Del Sole</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style_kontakt.css">
+    <!-- Podpinamy główny arkusz restauracji (style1.css) zamiast starego style2.css -->
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<!-- Bardzo ważne: dodajemy klasę 'subpage', aby menu zmieniło kolory na ciemne -->
+<body class="subpage">
 
-    <header class="header">
-        <div class="logo-container">
-            <div class="logo-badge">O</div>
-            <div class="logo-text">
-                <span class="brand-name">OSTERIA</span>
-                <span class="brand-sub">DEL SOLE</span>
-            </div>
-        </div>
-        <nav class="nav-links">
-            <a href="index.html">Strona główna</a>
-            <a href="about.html">O nas</a>
-            <a href="reservation.html">Rezerwacje</a>
-            <a href="kontakt.html">Kontakt</a>
-        </nav>
-        <a href="#formularz" class="btn-reserve">Reserve a table</a>
-    </header>
+    <!-- Kontener, w który nav.js automatycznie wstrzyknie wspólny nagłówek i menu -->
+    <header id="hednav" class="shell" style="margin-top: 40px;"></header>
 
+    <!-- BANER HERO DLA PODSTRONY KONTAKTU -->
     <section class="hero-section">
         <div class="hero-content">
-            <p class="subtitle-tag">GET IN TOUCH</p>
+            <p class="subtitle-tag">Get in touch</p>
             <h1 class="page-title">Skontaktuj się z nami</h1>
-            <p class="hero-description">
-                Zapraszamy do kontaktu w sprawie rezerwacji stolików, organizacji prywatnych wydarzeń oraz przekazywania opinii na temat naszej obsługi.
-            </p>
+            <p class="hero-description">Zapraszamy do kontaktu w sprawie rezerwacji stolików oraz organizacji wydarzeń.</p>
         </div>
     </section>
 
+    <!-- GŁÓWNA TREŚĆ KONTAKTU -->
     <main class="main-content">
         <div class="contact-grid">
             
-            <aside class="contact-details">
+            <!-- Szczegóły kontaktowe -->
+            <div class="contact-details">
                 <div class="detail-block">
                     <h2>Lokalizacja</h2>
                     <p>ul. Smakowita 12</p>
                     <p>31-001 Kraków, Polska</p>
                 </div>
-
                 <div class="detail-block">
                     <h2>Godziny otwarcia</h2>
-                    <p class="caption">DINNER TUESDAY — SUNDAY</p>
+                    <p class="caption">Dinner Tuesday — Sunday</p>
                     <p>Wtorek — Czwartek: 17:00 — 22:30</p>
                     <p>Piątek — Sobota: 17:00 — 23:30</p>
                     <p>Niedziela: 16:00 — 21:30</p>
-                    <p class="note">Poniedziałek: Zamknięte</p>
+                    <p>Poniedziałek: Zamknięte</p>
                 </div>
-
                 <div class="detail-block">
                     <h2>Bezpośredni kontakt</h2>
                     <p>Telefon: <a href="tel:+48123456789">+48 123 456 789</a></p>
                     <p>E-mail: <a href="mailto:kontakt@osteriadelsole.pl">kontakt@osteriadelsole.pl</a></p>
                 </div>
-            </aside>
+            </div>
 
-            <section class="form-section" id="formularz">
+            <!-- Formularz kontaktowy -->
+            <div class="form-section">
                 <h2>Formularz kontaktowy</h2>
-                
-                <form action="#" method="POST" class="contact-form">
+                <form class="contact-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="name">Imię i Nazwisko *</label>
-                            <input type="text" id="name" name="name" required placeholder="np. Jan Kowalski">
+                            <label>Imię i Nazwisko *</label>
+                            <input type="text" required>
                         </div>
                         <div class="form-group">
-                            <label for="email">Adres E-mail *</label>
-                            <input type="email" id="email" name="email" required placeholder="jan.kowalski@example.com">
+                            <label>Adres E-mail *</label>
+                            <input type="email" required>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="phone">Numer telefonu</label>
-                            <input type="tel" id="phone" name="phone" placeholder="+48 000 000 000">
+                            <label>Numer telefonu</label>
+                            <input type="tel">
                         </div>
                         <div class="form-group">
-                            <label for="subject">Temat wiadomości *</label>
-                            <select id="subject" name="subject" required>
+                            <label>Temat wiadomości *</label>
+                            <select required>
                                 <option value="" disabled selected>Wybierz temat...</option>
-                                <option value="rezerwacja">Rezerwacja stolika</option>
-                                <option value="wydarzenie">Prywatne wydarzenie</option>
-                                <option value="opinia_obsluga">Opinie, sugestie lub skargi dotyczące obsługi</option>
-                                <option value="pytanie">Zapytanie ogólne</option>
+                                <option>Rezerwacja stolika</option>
+                                <option>Prywatne wydarzenie</option>
+                                <option>Opinie, sugestie lub skargi</option>
+                                <option>Zapytanie ogólne</option>
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group">
-                        <label for="message">Treść wiadomości *</label>
-                        <textarea id="message" name="message" rows="5" required placeholder="Napisz swoją wiadomość..."></textarea>
+                        <label>Treść wiadomości *</label>
+                        <textarea rows="5" required></textarea>
                     </div>
-
                     <button type="submit" class="submit-button">Wyślij wiadomość</button>
                 </form>
-            </section>
+            </div>
 
         </div>
     </main>
@@ -112,5 +93,7 @@
         <p>&copy; 2026 Osteria Del Sole. All rights reserved.</p>
     </footer>
 
+    <!-- NA SAMYM DOLE PODPINAMY SKRYPT GENERUJĄCY MENU -->
+    <script src="nav.js"></script>
 </body>
 </html>
