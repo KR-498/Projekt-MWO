@@ -19,12 +19,14 @@ export default function Home() {
         <div className="hero-actions">
           
           {/* Kafel 1: Menu */}
-          <Link to="/about" className="hero-action menu-action">
-            <span>
-              <small>Nasze specjały</small>
-              Otwórz Menu
-            </span>
-            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.3" fill="none" /></svg>
+          <Link to="/menu" className="hero-action menu-action">
+          <span>
+            <small>Nasze specjały</small>
+            Otwórz Menu
+          </span>
+            <svg viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="1.3" fill="none" />
+            </svg>
           </Link>
 
           {/* Kafel 2: Rezerwacje */}

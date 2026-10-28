@@ -168,7 +168,7 @@ h2 {
   position: relative;
   z-index: 5;
   width: 100%;
-  max-width: 560px;
+  max-width: 680px;
   margin-bottom: 28px;
   border-top: 1px solid rgba(255, 255, 255, 0.22);
   border-bottom: 1px solid rgba(255, 255, 255, 0.22);
@@ -188,7 +188,8 @@ h2 {
   text-transform: uppercase;
   transition: all 180ms ease;
   border: 1px solid transparent;
-  padding: 13px 20px;
+  padding: 13px 16px;
+  white-space: nowrap; /* DODANE: wymusza jednolinijkowy tekst dla "O NAS" */
 }
 .nav-links a:hover { color: #e8c7a7; }
 .nav-links a.nav-reserve { border: 1px solid rgba(255, 255, 255, 0.7); }
@@ -219,7 +220,7 @@ h2 {
 .subpage .nav {
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  max-width: 560px;          /* Trzyma tę samą szerokość linii co na stronie głównej */
+  max-width: 680px; /* Zwiększono z 560px na 680px */
   width: 100%;
 }
 
@@ -247,7 +248,9 @@ h2 {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 36px;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px; /* Zapewnia równy odstęp między elementami */
 }
 
 .nav-links a {
@@ -256,8 +259,10 @@ h2 {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   transition: all 180ms ease;
-  border: 1px solid transparent;
-  padding: 13px 20px;
+  padding: 10px 12px;
+  white-space: nowrap !important; /* Blokuje łamanie wiersza */
+  flex-shrink: 0;                 /* Blokuje ściskanie elementu w kontenerze Flex */
+  display: inline-block;
 }
 .nav-links a:hover { color: #e8c7a7; }
 .nav-links a.nav-reserve { border: 1px solid rgba(255, 255, 255, 0.7); }

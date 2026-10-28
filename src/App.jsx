@@ -1,47 +1,51 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+
 import Navbar from './Navbar';
 import Home from './Home';
+import Menu from './Menu';
+import About from './About';
 import Reservation from './Reservation';
-import About from './About'; // <-- 1. Importujemy naszą sekcję O nas
 import Kontakt from './Kontakt';
 
+// 1. Wewnętrzny komponent – ma dostęp do useLocation(), bo znajduje się wewnątrz BrowserRouter
 function AppContent() {
   const location = useLocation();
 
-  // Dynamiczne zarządzanie klasą subpage na body
   useEffect(() => {
-    if (location.pathname === '/') {
-      document.body.classList.remove('subpage');
-    } else {
+    // Dynamiczne przełączanie klasy 'subpage' na elemencie <body>
+    if (location.pathname !== '/') {
       document.body.classList.add('subpage');
+    } else {
+      document.body.classList.remove('subpage');
     }
   }, [location]);
 
   return (
-    <>
-      {/* Jeśli NIE jesteśmy na stronie głównej, renderujemy standardowy jasny nagłówek */}
-      {location.pathname !== '/' && (
-        <div className="shell" style={{ marginTop: '40px' }}>
-          <Navbar />
-        </div>
-      )}
+      <>
+        {/* Pasek nawigacji dla wszystkich podstron poza osią główną / */}
+        {location.pathname !== '/' && (
+            <div className="shell" style={{ marginTop: '20px' }}>
+              <Navbar />
+            </div>
+        )}
 
-      {/* Dynamiczna treść podmieniająca się w zależności od adresu URL */}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} /> {/* <-- 2. Podmieniamy tutaj */}
-        <Route path="/reservation" element={<Reservation />} />
-        <Route path="/kontakt" element={<Kontakt />} />
-      </Routes>
-    </>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/reservation" element={<Reservation />} />
+          <Route path="/kontakt" element={<Kontakt />} />
+        </Routes>
+      </>
   );
 }
 
+// 2. Główny komponent – opakowuje całość w BrowserRouter
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
   );
 }
