@@ -8,12 +8,12 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Połączenie z PostgreSQL na Twoich danych
+// Połączenie z PostgreSQL
 const pool = new pg.Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'postgres', // Twoja baza[cite: 1]
-    password: 'Ernest-2005', // Twoje hasło
+    database: 'postgres',
+    password: 'Ernest-2005',
     port: 5432,
 });
 
