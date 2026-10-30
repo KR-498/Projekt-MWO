@@ -830,3 +830,52 @@ h2 {
     font-size: 0.8rem;
     margin-top: 4rem;
 }
+
+
+/* --- SORTOWANIE KARTY DAŃ (MENU) --- */
+.menu__controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.menu__sort-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.menu__sort-select {
+  background-color: var(--sand);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.55rem 1rem;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.menu__sort-select:hover {
+  border-color: var(--muted);
+}
+
+.menu__sort-select:focus {
+  outline: none;
+  border-color: var(--burgundy);
+  box-shadow: 0 0 0 1px var(--burgundy);
+}
+
+@media (max-width: 560px) {
+  .menu__controls {
+    justify-content: space-between;
+  }
+
+  .menu__sort-select {
+    flex: 1;
+  }
+}
