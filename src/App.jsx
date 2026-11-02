@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
+// Importujemy nasz globalny koszyk (upewnij się, że ścieżka do pliku CartContext jest poprawna)
+import { CartProvider } from './CartContext'; 
+
 import Navbar from './Navbar';
 import Home from './Home';
 import Menu from './Menu';
@@ -41,11 +44,13 @@ function AppContent() {
   );
 }
 
-// 2. Główny komponent – opakowuje całość w BrowserRouter
+// 2. Główny komponent – opakowuje całość w BrowserRouter oraz CartProvider
 export default function App() {
   return (
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <CartProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </CartProvider>
   );
 }
