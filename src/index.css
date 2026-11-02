@@ -429,8 +429,27 @@ h2 {
 }
 
 .dishes li {
-  padding: 13rem 0;
+  padding: 1.5rem 0;
   border-bottom: 1px solid var(--line);
+  /* Dodajemy płynne przejście dla animacji: */
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
+  padding-inline: 1rem; /* Lekki margines wewnętrzny, by tło miało przestrzeń */
+  margin-inline: -1rem; /* Kompensacja marginesu, by linie nie wystawały */
+  border-radius: 6px;
+}
+
+/* Efekt po najechaniu myszką */
+.dishes li:hover {
+  background-color: var(--sand); /* Subtelne, kremowe podświetlenie */
+  transform: translateX(8px);    /* Delikatne wysunięcie potrawy w prawo */
+}
+
+/* Dodatkowo: zmiana koloru linii kropkowanej na burgund po najechaniu */
+.dishes li:hover .dish__line {
+  background: var(--burgundy);
+  opacity: 0.5;
+  transition: background 0.3s ease;
 }
 
 .dish__row {
