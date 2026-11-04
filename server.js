@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Połączenie z baza danych na Neon.tech
+// Połączenie z bazą danych na Neon.tech
 const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -44,7 +44,8 @@ app.get('/api/dishes', async (req, res) => {
         res.status(500).json({ error: 'Błąd serwera podczas pobierania menu' });
     }
 });
-// NOWY ENDPOINT: Przyjmowanie zamówień i zapis w bazie danych
+
+// Przyjmowanie zamówień i zapis w bazie danych
 app.post('/api/orders', async (req, res) => {
     const { items, totalPrice } = req.body;
 
@@ -52,7 +53,6 @@ app.post('/api/orders', async (req, res) => {
         return res.status(400).json({ error: 'Koszyk nie może być pusty.' });
     }
 
-    // Pobieramy połączenie z puli, by wykonać bezpieczną transakcję (ACID)
     const client = await pool.connect();
 
     try {
@@ -60,46 +60,47 @@ app.post('/api/orders', async (req, res) => {
 
         // 1. Wstawienie zamówienia głównego
         const orderQuery = `
-            INSERT INTO orders (total_price) 
-            VALUES ($1) 
-            RETURNING id;
+            INSERT INTO orders (total_price)
+            VALUES ($1)
+                RETURNING id;
         `;
         const orderResult = await client.query(orderQuery, [totalPrice]);
         const orderId = orderResult.rows[0].id;
 
-        // 2. Wstawienie wszystkich pozycji z koszyka powiązanych z tym zamówieniem
+        // 2. Wstawienie pozycji z koszyka (kolejność kolumn ułożona pod tablicę poniżej)
         const itemQuery = `
-            INSERT INTO order_items (order_id, dish_id, quantity, special_notes, price, dish_name)
+            INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
             VALUES ($1, $2, $3, $4, $5, $6);
         `;
 
         for (const item of items) {
             await client.query(itemQuery, [
-                orderId,
-                item.dish_id,
-                item.name || item.dish_name,
-                item.quantity,
-                item.price,
-                item.special_notes || null // jeśli brak uwag, wstawia NULL
+                orderId,                                    // $1 -> order_id (INT)
+                item.dish_id || item.id,                    // $2 -> dish_id (INT)
+                item.dish_name || item.name,                // $3 -> dish_name (TEXT)
+                item.quantity,                              // $4 -> quantity (INT)
+                item.price,                                 // $5 -> price (NUMERIC)
+                item.special_notes || item.notes || null    // $6 -> special_notes (TEXT)
             ]);
         }
 
-        await client.query('COMMIT'); // Zatwierdzenie zmian w bazie danych
-        
-        res.status(201).json({ 
-            success: true, 
-            message: 'Zamówienie zostało pomyślnie zapisane!', 
-            orderId: orderId 
+        await client.query('COMMIT'); // Zatwierdzenie zmian
+
+        res.status(201).json({
+            success: true,
+            message: 'Zamówienie zostało pomyślnie zapisane!',
+            orderId: orderId
         });
 
     } catch (err) {
-        await client.query('ROLLBACK'); // W razie błędu wycofujemy wszystkie zmiany
+        await client.query('ROLLBACK'); // Wycofanie zmian przy błędzie
         console.error('Błąd podczas zapisywania zamówienia:', err.message);
         res.status(500).json({ error: 'Wystąpił błąd serwera podczas składania zamówienia.' });
     } finally {
-        client.release(); // Zwolnienie klienta z powrotem do puli
+        client.release();
     }
 });
+
 app.listen(PORT, () => {
     console.log(`Serwer połączony z chmurą działa na porcie http://localhost:${PORT}`);
 });
