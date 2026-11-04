@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     total_price NUMERIC(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Europe/Warsaw')
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS order_items (
     dish_id INT NOT NULL,
     quantity INT NOT NULL,
     special_notes TEXT,
-    price NUMERIC(10, 2) NOT NULL
+    price NUMERIC(10, 2) NOT NULL,
+    dish_name VARCHAR(100) NOT NULL
 );
