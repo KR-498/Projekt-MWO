@@ -69,17 +69,18 @@ app.post('/api/orders', async (req, res) => {
 
         // 2. Wstawienie wszystkich pozycji z koszyka powiązanych z tym zamówieniem
         const itemQuery = `
-            INSERT INTO order_items (order_id, dish_id, quantity, special_notes, price) 
-            VALUES ($1, $2, $3, $4, $5);
+            INSERT INTO order_items (order_id, dish_id, quantity, special_notes, price, dish_name)
+            VALUES ($1, $2, $3, $4, $5, $6);
         `;
 
         for (const item of items) {
             await client.query(itemQuery, [
                 orderId,
                 item.dish_id,
+                item.name || item.dish_name,
                 item.quantity,
-                item.special_notes || null, // Zapewnia obsługę braku uwag
-                item.price
+                item.price,
+                item.special_notes || null // jeśli brak uwag, wstawia NULL
             ]);
         }
 
