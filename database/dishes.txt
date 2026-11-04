@@ -1,0 +1,52 @@
+-- Kategorie Dań --
+
+CREATE TABLE IF NOT EXISTS categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    display_order INT DEFAULT 0
+);
+
+-- Dania (dostępne w menu) --
+CREATE TABLE IF NOT EXISTS dishes (
+    id SERIAL PRIMARY KEY,
+    category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(8, 2) NOT NULL,
+    tag VARCHAR(30) DEFAULT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
+	image_url VARCHAR(255)
+);
+
+-- Wstawianie kategorii --
+INSERT INTO categories (name, display_order)
+VALUES ('Przystawki', 1), ('Dania Główne', 2), ('Desery', 3), ('Napoje i Wina', 4);
+
+-- Wstawianie potraw --
+-- Przystawki --
+INSERT INTO dishes (category_id, name, description, price, tag, is_available, image_url) VALUES
+(1, 'Bruschetta al Pomodoro', 'Chrupiąca pieczona bagietka z dojrzałymi pomidorami San Marzano, czosnkiem, świeżą bazylią i oliwą Extra Vergine.', 28.00, 'WEGE', TRUE, '/res/dishes/bruschetta.jpg'),
+(1, 'Carpaccio di Manzo', 'Cienko krojona polędwica wołowa z płatkami Parmezanu (Parmigiano Reggiano), kaparami, rukolą i oliwą truflową.', 44.00, 'KLASYK', TRUE, '/res/dishes/carpaccio.jpg'),
+(1, 'Burrata con Pomodorini', 'Kremowy ser Burrata z Puglii serwowany z pieczonymi pomidorkami koktajlowymi, domowym pesto z bazylii i orzeszkami piniowymi.', 42.00, 'WEGE', TRUE, '/res/dishes/burrata.jpg'),
+(1, 'Gamberi al Aglio', 'Krewetki królewskie duszone na maśle z czosnkiem, białą odmianą wina i świeżą natką pietruszki, podawane z foccacią.', 49.00, 'MISTRZ KUCHNI', TRUE, '/res/dishes/gamberi.jpg');
+
+-- Dania Główne --
+INSERT INTO dishes (category_id, name, description, price, tag, is_available, image_url) VALUES
+(2, 'Spaghetti Carbonara Originale', 'Tradycyjny rzymski przepis z chrupiącym Guanciale, żółtkami wiejskich jaj, serem Pecorino Romano i świeżo mielonym czarnym pieprzem.', 42.00, 'KLASYK', TRUE, '/res/dishes/carbonara.jpg'),
+(2, 'Tagliatelle al Tartufo', 'Ręcznie zagniatany makaron jajeczny w kremowym sosie maślanym z dodatkiem świeżej czarnej trufli i Parmezanu.', 58.00, 'MISTRZ KUCHNI', TRUE, '/res/dishes/tartufo.jpg'),
+(2, 'Risotto ai Funghi Porcini', 'Aromatyczny ryż Carnaroli powoli duszony z prawdziwkami, szalotką, białym winem, masłem i tymiankiem.', 48.00, 'WEGE', TRUE, '/res/dishes/risotto.jpg'),
+(2, 'Filetto di Manzo', 'Soczysty stek z polędwicy wołowej podawany z puree z ziemniaków truflowych, pieczonymi warzywami korzeniowymi i redukcją z wina Amarone.', 89.00, 'PREMIUM', TRUE, '/res/dishes/filetto.jpg'),
+(2, 'Salmone alla Griglia', 'Grillowany filet z łososia jurajskiego na poduszce z puree z zielonego groszku, z sosem cytrusowo-maślanym i szparagami.', 66.00, 'NOWOŚĆ', TRUE, '/res/dishes/salmone.jpg');
+
+-- Desery --
+INSERT INTO dishes (category_id, name, description, price, tag, is_available, image_url) VALUES
+(3, 'Tiramisu Tradizionale', 'Klasyczny włoski deser na bazie biszkoptów Savoiardi nasączonych espresso z likierem Amaretto i aksamitnym kremem z sera Mascarpone.', 26.00, 'KLASYK', TRUE, '/res/dishes/tiramisu.jpg'),
+(3, 'Panna Cotta al Lampone', 'Aksamitny deser śmietankowy z prawdziwą wanilią Bourbon, serwowany z domową konfiturą z leśnych malin.', 24.00, 'HIT', TRUE, '/res/dishes/pannacotta.jpg'),
+(3, 'Cannoli Siciliani', 'Chrupiące sycylijskie rurki nadziewane słodkim kremem z sera Ricotta, posypane pistacjami z Bronte i cząstkami czekolady.', 28.00, 'SPECJALNOŚĆ', TRUE, '/res/dishes/cannoli.jpg');
+
+-- Napoje i Wina --
+INSERT INTO dishes (category_id, name, description, price, tag, is_available, image_url) VALUES
+(4, 'Espresso Doppio', 'Podwójny strzał intensywnej włoskiej kawy Arabica wypalanej we Florencji.', 14.00, NULL, TRUE, '/res/dishes/espresso.jpg'),
+(4, 'Limonata Casalinga', 'Domowa cytrynowa lemoniada ze świeżą miętą, syropem z trawy cytrynowej i kruszonym lodem.', 18.00, NULL, TRUE, '/res/dishes/limonata.jpg'),
+(4, 'Chianti Classico DOCG (150ml)', 'Wytrawne czerwone wino włoskie z Toskanii o wyrazistym bukiecie dojrzałych wiśni i przypraw.', 29.00, 'WINO', TRUE, '/res/dishes/chianti.jpg'),
+(4, 'Aperol Spritz', 'Kultowy włoski aperitif: Aperol, Prosecco DOC, woda gazowana oraz plaster świeżej pomarańczy.', 34.00, 'COCKTAIL', TRUE, '/res/dishes/aperol.jpg');
