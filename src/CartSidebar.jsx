@@ -1,12 +1,52 @@
+import { useState } from 'react';
 import { useCart } from './CartContext';
 
 export default function CartSidebar() {
-    // Wyciągamy updateQuantity z kontekstu
-    const { cartItems, cartTotal, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity } = useCart();
+    // Pobieramy dodatkowo funkcję clearCart do czyszczenia koszyka po zamówieniu
+    const { cartItems, cartTotal, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, clearCart } = useCart();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isCartOpen) return null;
 
     const safeCartItems = cartItems || [];
+
+    // Funkcja wysyłająca dane na serwer
+    const handleOrderSubmit = async () => {
+        if (safeCartItems.length === 0) return;
+
+        setIsSubmitting(true);
+
+        // Przygotowanie paczki danych zgodnie z oczekiwaniami backendu
+        const orderPayload = {
+            items: safeCartItems,
+            totalPrice: cartTotal
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderPayload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`Sukces! Zamówienie zostało złożone. Numer zamówienia: ${data.orderId}`);
+                clearCart(); // Czyszczenie koszyka na froncie
+                setIsCartOpen(false); // Zamknięcie koszyka
+            } else {
+                alert(`Błąd: ${data.error || 'Nie udało się złożyć zamówienia.'}`);
+            }
+        } catch (error) {
+            console.error('Błąd sieci:', error);
+            alert('Błąd połączenia z serwerem. Upewnij się, że backend działa.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
@@ -26,12 +66,12 @@ export default function CartSidebar() {
                                     <div className="cart-sidebar__item-info">
                                         <h4>{item.name}</h4>
                                         
-                                        {/* NOWY INTERAKTYWNY SELEKTOR ILOŚCI */}
                                         <div className="cart-sidebar__qty-selector" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
                                             <button 
                                                 type="button" 
                                                 onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity - 1)}
                                                 style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #ccc', background: '#fff', borderRadius: '4px' }}
+                                                disabled={isSubmitting}
                                             >
                                                 -
                                             </button>
@@ -40,6 +80,7 @@ export default function CartSidebar() {
                                                 type="button" 
                                                 onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity + 1)}
                                                 style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #ccc', background: '#fff', borderRadius: '4px' }}
+                                                disabled={isSubmitting}
                                             >
                                                 +
                                             </button>
@@ -55,6 +96,7 @@ export default function CartSidebar() {
                                             onClick={() => removeFromCart(item.dish_id, item.special_notes)}
                                             className="cart-sidebar__delete-btn"
                                             title="Usuń pozycję"
+                                            disabled={isSubmitting}
                                         >
                                             🗑️
                                         </button>
@@ -73,9 +115,10 @@ export default function CartSidebar() {
                         </div>
                         <button 
                             className="cart-sidebar__submit-btn"
-                            onClick={() => alert('Tutaj w przyszłości zaimplementujemy wysyłanie zamówienia na serwer!')}
+                            onClick={handleOrderSubmit}
+                            disabled={isSubmitting}
                         >
-                            Zamów i zapłać
+                            {isSubmitting ? 'Wysyłanie zamówienia...' : 'Zamów i zapłać'}
                         </button>
                     </div>
                 )}
