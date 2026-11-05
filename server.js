@@ -101,7 +101,38 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// Przyjmowanie rezerwacji stolików i zapis w bazie danych
+// Pomocnicza funkcja zamieniająca godzinę "HH:MM" lub "HH:MM:SS" na minuty od północy
+function timeToMinutes(timeStr) {
+    const [hours, minutes] = String(timeStr).split(':').map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
+}
+
+// Sprawdza, czy podana data i godzina należą do przeszłości
+function isDateTimeInPast(dateStr, timeStr) {
+    const [year, month, day] = String(dateStr).split('-').map(Number);
+    const [hours, minutes] = String(timeStr || '00:00').split(':').map(Number);
+    const target = new Date(year, month - 1, day, hours || 0, minutes || 0, 0);
+    return target < new Date();
+}
+
+// Zwraca godziny otwarcia dla podanej daty ("YYYY-MM-DD") lub null, jeśli w tym dniu restauracja jest zamknięta
+function getOpeningHours(dateStr) {
+    const [year, month, day] = String(dateStr).split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+
+    if (dayOfWeek === 1) {
+        return null; // Poniedziałek: Zamknięte
+    }
+    if (dayOfWeek >= 2 && dayOfWeek <= 4) {
+        return { open: '17:00', close: '22:30' }; // Wtorek — Czwartek
+    }
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+        return { open: '17:00', close: '23:30' }; // Piątek — Sobota
+    }
+    return { open: '16:00', close: '21:30' }; // Niedziela
+}
+
+// Przyjmowanie rezerwacji stolików i zapis w bazie danych (z losowaniem stolika 1-50 i min. 3h odstępu)
 app.post('/api/reservations', async (req, res) => {
     const { name, email, phone, date, time, reservation_date, reservation_time, guests } = req.body;
 
@@ -113,18 +144,104 @@ app.post('/api/reservations', async (req, res) => {
         return res.status(400).json({ error: 'Wszystkie pola rezerwacji są wymagane.' });
     }
 
+    if (isDateTimeInPast(reservationDate, reservationTime)) {
+        return res.status(400).json({
+            error: 'Nie można dokonać rezerwacji na termin z przeszłości.'
+        });
+    }
+
+    const openingHours = getOpeningHours(reservationDate);
+    if (!openingHours) {
+        return res.status(400).json({
+            error: 'W poniedziałki restauracja jest zamknięta. Zapraszamy od wtorku do niedzieli.'
+        });
+    }
+
+    const requestedMinutes = timeToMinutes(reservationTime);
+    const openMinutes = timeToMinutes(openingHours.open);
+    const closeMinutes = timeToMinutes(openingHours.close);
+
+    if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
+        return res.status(400).json({
+            error: `W wybranym dniu restauracja czynna jest w godzinach ${openingHours.open}–${openingHours.close}.`
+        });
+    }
+
+    const TOTAL_TABLES = 50;
+    const MIN_DIFF_MINUTES = 180; // 3 godziny = 180 minut
+
     try {
-        const query = `
-            INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, guests)
-            VALUES ($1, $2, $3, $4, $5, $6)
+        // 1. Pobieramy istniejące rezerwacje w wybranym dniu
+        const existingResult = await pool.query(
+            `SELECT table_number, reservation_time
+             FROM reservations
+             WHERE reservation_date = $1
+               AND table_number IS NOT NULL`,
+            [reservationDate]
+        );
+
+        // Grupujemy godziny rezerwacji według numeru stolika
+        const reservationsByTable = new Map();
+        for (const row of existingResult.rows) {
+            const tableNum = Number(row.table_number);
+            if (!reservationsByTable.has(tableNum)) {
+                reservationsByTable.set(tableNum, []);
+            }
+            reservationsByTable.get(tableNum).push(timeToMinutes(row.reservation_time));
+        }
+
+        const unusedTables = [];
+        const reusableTables = [];
+
+        for (let tableNum = 1; tableNum <= TOTAL_TABLES; tableNum++) {
+            const bookedTimes = reservationsByTable.get(tableNum);
+
+            if (!bookedTimes || bookedTimes.length === 0) {
+                // Stolik nie ma jeszcze żadnej rezerwacji w tym dniu
+                unusedTables.push(tableNum);
+            } else {
+                // Stolik ma już rezerwację w tym dniu – sprawdzamy, czy od każdej z nich mija min. 3h
+                const hasConflict = bookedTimes.some(
+                    (bookedMinutes) => Math.abs(bookedMinutes - requestedMinutes) < MIN_DIFF_MINUTES
+                );
+                if (!hasConflict) {
+                    reusableTables.push(tableNum);
+                }
+            }
+        }
+
+        // Najpierw losujemy spośród całkiem wolnych stolików, a gdy ich braknie – spośród stolików z min. 3h odstępu
+        const candidateTables = unusedTables.length > 0 ? unusedTables : reusableTables;
+
+        if (candidateTables.length === 0) {
+            return res.status(409).json({
+                error: 'Brak wolnych stolików na wybraną godzinę (wymagany odstęp min. 3 godz.). Prosimy wybrać inną godzinę.'
+            });
+        }
+
+        const randomIndex = Math.floor(Math.random() * candidateTables.length);
+        const assignedTable = candidateTables[randomIndex];
+
+        // 2. Zapisujemy rezerwację wraz z wylosowanym numerem stolika
+        const insertQuery = `
+            INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, guests, table_number)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *;
         `;
-        const values = [name, email, phone, reservationDate, reservationTime, guestsCount];
-        const result = await pool.query(query, values);
+        const values = [
+            name,
+            email,
+            phone,
+            reservationDate,
+            reservationTime,
+            guestsCount,
+            assignedTable
+        ];
+        const result = await pool.query(insertQuery, values);
 
         res.status(201).json({
             success: true,
-            message: 'Rezerwacja została pomyślnie zapisana!',
+            message: `Rezerwacja została pomyślnie zapisana! Przypisano stolik nr ${assignedTable}.`,
             reservation: result.rows[0]
         });
     } catch (err) {
