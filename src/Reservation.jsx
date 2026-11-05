@@ -1,21 +1,56 @@
 import { useState } from 'react';
 
 export default function Reservation() {
-  // Stan do kontrolowania wyświetlania komunikatu o sukcesie
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Funkcja obsługująca wysłanie formularza bez przeładowania strony
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Zatrzymujemy domyślne przeładowanie strony URL
-    setIsSubmitted(true); // Pokazujemy zielony komunikat o sukcesie
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setIsSubmitted(false);
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const payload = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      phone: formData.get('phone'),
+      reservation_date: formData.get('date'),
+      reservation_time: formData.get('time'),
+      guests: Number(formData.get('guests')),
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/api/reservations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Nie udało się zapisać rezerwacji.');
+      }
+
+      setIsSubmitted(true);
+      form.reset();
+    } catch (err) {
+      setError(err.message || 'Błąd połączenia z serwerem.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <main>
       <section className="section reservation" id="rezerwacja">
-        {/* Usunąłem klasę reveal, żeby sekcja była od razu widoczna bez skryptu scrollowania */}
         <div className="container reservation__grid">
-          
           <div className="reservation__intro">
             <p className="eyebrow">Twój stolik czeka</p>
             <h2>Dołącz do nas.</h2>
@@ -41,7 +76,7 @@ export default function Reservation() {
                 required
               />
             </div>
-            
+
             <div className="field">
               <label htmlFor="email">E-mail</label>
               <input
@@ -53,7 +88,7 @@ export default function Reservation() {
                 required
               />
             </div>
-            
+
             <div className="field">
               <label htmlFor="phone">Telefon</label>
               <input
@@ -66,7 +101,7 @@ export default function Reservation() {
                 required
               />
             </div>
-            
+
             <div className="field-row">
               <div className="field">
                 <label htmlFor="date">Data</label>
@@ -85,7 +120,7 @@ export default function Reservation() {
                 />
               </div>
             </div>
-            
+
             <div className="field">
               <label htmlFor="guests">Liczba osób</label>
               <select id="guests" name="guests" required defaultValue="2">
@@ -97,23 +132,37 @@ export default function Reservation() {
                 <option value="6">6 osób</option>
               </select>
             </div>
-            
-            <button type="submit" className="btn btn--dark">
-              Potwierdź rezerwację <span aria-hidden="true">→</span>
+
+            <button
+              type="submit"
+              className="btn btn--dark"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Wysyłanie...' : 'Potwierdź rezerwację'}{' '}
+              <span aria-hidden="true">→</span>
             </button>
-            
+
             <p className="form__note">
               Dla grup powyżej 6 osób prosimy o kontakt telefoniczny.
             </p>
 
-            {/* Komunikat o sukcesie - renderuje się tylko, gdy isSubmitted === true */}
+            {error && (
+              <p className="error" role="alert" style={{ marginTop: '1rem' }}>
+                {error}
+              </p>
+            )}
+
             {isSubmitted && (
-              <p className="success" id="potwierdzenie" role="status" style={{ display: 'block' }}>
+              <p
+                className="success"
+                id="potwierdzenie"
+                role="status"
+                style={{ display: 'block' }}
+              >
                 Dziękujemy! Twoja rezerwacja została przyjęta.
               </p>
             )}
           </form>
-
         </div>
       </section>
     </main>

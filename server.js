@@ -101,6 +101,38 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
+// Przyjmowanie rezerwacji stolików i zapis w bazie danych
+app.post('/api/reservations', async (req, res) => {
+    const { name, email, phone, date, time, reservation_date, reservation_time, guests } = req.body;
+
+    const reservationDate = reservation_date || date;
+    const reservationTime = reservation_time || time;
+    const guestsCount = Number(guests);
+
+    if (!name || !email || !phone || !reservationDate || !reservationTime || !guestsCount) {
+        return res.status(400).json({ error: 'Wszystkie pola rezerwacji są wymagane.' });
+    }
+
+    try {
+        const query = `
+            INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, guests)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *;
+        `;
+        const values = [name, email, phone, reservationDate, reservationTime, guestsCount];
+        const result = await pool.query(query, values);
+
+        res.status(201).json({
+            success: true,
+            message: 'Rezerwacja została pomyślnie zapisana!',
+            reservation: result.rows[0]
+        });
+    } catch (err) {
+        console.error('Błąd podczas zapisywania rezerwacji:', err.message);
+        res.status(500).json({ error: 'Wystąpił błąd serwera podczas zapisywania rezerwacji.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Serwer połączony z chmurą działa na porcie http://localhost:${PORT}`);
 });
