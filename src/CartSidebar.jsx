@@ -2,52 +2,70 @@ import { useState } from 'react';
 import { useCart } from './CartContext';
 
 export default function CartSidebar() {
-    // Pobieramy dodatkowo funkcję clearCart do czyszczenia koszyka po zamówieniu
     const { cartItems, cartTotal, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, clearCart } = useCart();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState(null);
+
+    const today = new Date().toISOString().split('T');
+    const [deliveryType, setDeliveryType] = useState('pickup');
+    const [customerName, setCustomerName] = useState('');
+    const [customerEmail, setCustomerEmail] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [deliveryStreet, setDeliveryStreet] = useState('');
+    const [deliveryCity, setDeliveryCity] = useState('');
+    const [deliveryNotes, setDeliveryNotes] = useState('');
+    const [scheduledDate, setScheduledDate] = useState(today);
+    const [scheduledTime, setScheduledTime] = useState('18:30');
 
     if (!isCartOpen) return null;
 
     const safeCartItems = cartItems || [];
+    const deliveryFee = (deliveryType === 'delivery' && cartTotal < 150) ? 15.00 : 0.00;
+    const finalTotal = cartTotal + deliveryFee;
 
-    // Funkcja wysyłająca dane na serwer
-    const handleOrderSubmit = async () => {
+    const handleOrderSubmit = async (e) => {
+        e.preventDefault();
+        setErrorMsg(null);
         if (safeCartItems.length === 0) return;
 
         setIsSubmitting(true);
 
-        // Przygotowanie paczki danych zgodnie z oczekiwaniami backendu
         const orderPayload = {
             items: safeCartItems,
-            totalPrice: cartTotal
+            customerName,
+            customerEmail,
+            customerPhone,
+            deliveryType,
+            deliveryStreet,
+            deliveryCity,
+            deliveryNotes,
+            scheduledDate,
+            scheduledTime
         };
 
         try {
             const response = await fetch('http://localhost:5000/api/orders', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderPayload)
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert(`Sukces! Zamówienie zostało złożone. Numer zamówienia: ${data.orderId}`);
-                clearCart(); // Czyszczenie koszyka na froncie
-                setIsCartOpen(false); // Zamknięcie koszyka
+                alert(`Dziękujemy, ${customerName}! Zamówienie nr ${data.orderId} zostało przyjęte na ${scheduledDate} o godz. ${scheduledTime}.`);
+                clearCart();
+                setIsCartOpen(false);
             } else {
-                alert(`Błąd: ${data.error || 'Nie udało się złożyć zamówienia.'}`);
+                setErrorMsg(data.error || 'Nie udało się złożyć zamówienia.');
             }
         } catch (error) {
             console.error('Błąd sieci:', error);
-            alert('Błąd połączenia z serwerem. Upewnij się, że backend działa.');
+            setErrorMsg('Błąd połączenia z serwerem. Upewnij się, że backend działa.');
         } finally {
             setIsSubmitting(false);
         }
     };
-
     return (
         <div className="cart-overlay" onClick={() => setIsCartOpen(false)}>
             <div className="cart-sidebar" onClick={(e) => e.stopPropagation()}>
@@ -60,65 +78,180 @@ export default function CartSidebar() {
                     {safeCartItems.length === 0 ? (
                         <p className="cart-sidebar__empty">Koszyk jest pusty. Dodaj pyszne potrawy z menu!</p>
                     ) : (
-                        <ul className="cart-sidebar__list">
-                            {safeCartItems.map((item, index) => (
-                                <li key={`${item.dish_id}-${index}`} className="cart-sidebar__item">
-                                    <div className="cart-sidebar__item-info">
-                                        <h4>{item.name}</h4>
-                                        
-                                        <div className="cart-sidebar__qty-selector" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity - 1)}
-                                                style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #ccc', background: '#fff', borderRadius: '4px' }}
-                                                disabled={isSubmitting}
-                                            >
-                                                -
-                                            </button>
-                                            <span style={{ fontWeight: '600', minWidth: '18px', textAlign: 'center' }}>{item.quantity}</span>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity + 1)}
-                                                style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '1px solid #ccc', background: '#fff', borderRadius: '4px' }}
-                                                disabled={isSubmitting}
-                                            >
-                                                +
-                                            </button>
+                        <>
+                            <ul className="cart-sidebar__list">
+                                {safeCartItems.map((item, index) => (
+                                    <li key={`${item.dish_id}-${index}`} className="cart-sidebar__item">
+                                        <div className="cart-sidebar__item-info">
+                                            <h4>{item.name}</h4>
+                                            <div className="cart-sidebar__qty-selector" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
+                                                <button type="button" onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity - 1)} disabled={isSubmitting}>-</button>
+                                                <span>{item.quantity}</span>
+                                                <button type="button" onClick={() => updateQuantity(item.dish_id, item.special_notes, item.quantity + 1)} disabled={isSubmitting}>+</button>
+                                            </div>
+                                            {item.special_notes && <p className="cart-sidebar__item-notes">„{item.special_notes}”</p>}
+                                        </div>
+                                        <div className="cart-sidebar__item-actions">
+                                            <span>{item.total_price.toFixed(2)} zł</span>
+                                            <button type="button" onClick={() => removeFromCart(item.dish_id, item.special_notes)} className="cart-sidebar__delete-btn" disabled={isSubmitting}>🗑️</button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <form id="order-planning-form" onSubmit={handleOrderSubmit} className="cart-planning">
+                                <h3 className="cart-planning__title">Sposób i czas realizacji</h3>
+
+                                <div className="cart-planning__toggle">
+                                    <button
+                                        type="button"
+                                        className={`toggle-btn ${deliveryType === 'pickup' ? 'active' : ''}`}
+                                        onClick={() => setDeliveryType('pickup')}
+                                    >
+                                        Odbiór osobisty
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`toggle-btn ${deliveryType === 'delivery' ? 'active' : ''}`}
+                                        onClick={() => setDeliveryType('delivery')}
+                                    >
+                                        Dostawa
+                                    </button>
+                                </div>
+
+                                {deliveryType === 'delivery' && (
+                                    <div className="cart-planning__delivery-box">
+                                        <p className="delivery-info-banner">
+                                            {cartTotal >= 150
+                                                ? '🎉 Darmowa dostawa (zamówienie powyżej 150 zł)'
+                                                : `Koszt dostawy: 15.00 zł (brakuje ${(150 - cartTotal).toFixed(2)} zł do darmowej)`}
+                                        </p>
+
+                                        <div className="cart-planning__group">
+                                            <label htmlFor="delivery-street">Ulica i numer domu/mieszkania *</label>
+                                            <input
+                                                id="delivery-street"
+                                                type="text"
+                                                placeholder="np. ul. Włoska 12/4"
+                                                value={deliveryStreet}
+                                                onChange={(e) => setDeliveryStreet(e.target.value)}
+                                                required
+                                            />
                                         </div>
 
-                                        {item.special_notes && (
-                                            <p className="cart-sidebar__item-notes">„{item.special_notes}”</p>
-                                        )}
+                                        <div className="cart-planning__group">
+                                            <label htmlFor="delivery-city">Kod pocztowy i miasto *</label>
+                                            <input
+                                                id="delivery-city"
+                                                type="text"
+                                                placeholder="np. 33-132 Niedomice"
+                                                value={deliveryCity}
+                                                onChange={(e) => setDeliveryCity(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="cart-planning__group">
+                                            <label htmlFor="delivery-notes">Uwagi dla kuriera (opcjonalnie)</label>
+                                            <input
+                                                id="delivery-notes"
+                                                type="text"
+                                                placeholder="np. kod do domofonu 123, II piętro"
+                                                value={deliveryNotes}
+                                                onChange={(e) => setDeliveryNotes(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="cart-sidebar__item-actions">
-                                        <span>{item.total_price.toFixed(2)} zł</span>
-                                        <button 
-                                            onClick={() => removeFromCart(item.dish_id, item.special_notes)}
-                                            className="cart-sidebar__delete-btn"
-                                            title="Usuń pozycję"
-                                            disabled={isSubmitting}
-                                        >
-                                            🗑️
-                                        </button>
+                                )}
+                                <div className="cart-planning__row">
+                                    <div className="cart-planning__group">
+                                        <label htmlFor="scheduled-date">Dzień *</label>
+                                        <input
+                                            id="scheduled-date"
+                                            type="date"
+                                            min={today}
+                                            value={scheduledDate}
+                                            onChange={(e) => setScheduledDate(e.target.value)}
+                                            required
+                                        />
                                     </div>
-                                </li>
-                            ))}
-                        </ul>
+                                    <div className="cart-planning__group">
+                                        <label htmlFor="scheduled-time">Godzina *</label>
+                                        <input
+                                            id="scheduled-time"
+                                            type="time"
+                                            value={scheduledTime}
+                                            onChange={(e) => setScheduledTime(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <h3 className="cart-planning__title" style={{ marginTop: '1rem' }}>Dane kontaktowe</h3>
+
+                                <div className="cart-planning__group">
+                                    <label htmlFor="customer-name">Imię i nazwisko *</label>
+                                    <input
+                                        id="customer-name"
+                                        type="text"
+                                        placeholder="Jan Kowalski"
+                                        value={customerName}
+                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="cart-planning__row">
+                                    <div className="cart-planning__group">
+                                        <label htmlFor="customer-phone">Telefon *</label>
+                                        <input
+                                            id="customer-phone"
+                                            type="tel"
+                                            placeholder="500 600 700"
+                                            value={customerPhone}
+                                            onChange={(e) => setCustomerPhone(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="cart-planning__group">
+                                        <label htmlFor="customer-email">E-mail (opcjonalnie)</label>
+                                        <input
+                                            id="customer-email"
+                                            type="email"
+                                            placeholder="jan@domena.pl"
+                                            value={customerEmail}
+                                            onChange={(e) => setCustomerEmail(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {errorMsg && (
+                                    <p className="cart-planning__error">{errorMsg}</p>
+                                )}
+                            </form>
+                        </>
                     )}
                 </div>
 
                 {safeCartItems.length > 0 && (
                     <div className="cart-sidebar__footer">
+                        {deliveryType === 'delivery' && (
+                            <div className="cart-sidebar__sub-row">
+                                <span>Dostawa:</span>
+                                <span>{deliveryFee === 0 ? 'Gratis' : `${deliveryFee.toFixed(2)} zł`}</span>
+                            </div>
+                        )}
                         <div className="cart-sidebar__total">
                             <span>Razem do zapłaty:</span>
-                            <strong>{cartTotal.toFixed(2)} zł</strong>
+                            <strong>{finalTotal.toFixed(2)} zł</strong>
                         </div>
-                        <button 
+                        <button
+                            type="submit"
+                            form="order-planning-form"
                             className="cart-sidebar__submit-btn"
-                            onClick={handleOrderSubmit}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? 'Wysyłanie zamówienia...' : 'Zamów i zapłać'}
+                            {isSubmitting ? 'Przetwarzanie...' : 'Zamów i zapłać'}
                         </button>
                     </div>
                 )}

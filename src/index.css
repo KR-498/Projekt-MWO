@@ -1204,3 +1204,133 @@ h2 {
 .cart-sidebar__submit-btn:hover {
   background: #333333;
 }
+/* ==========================================================================
+   ELEGANCKIE STYLE PLANOWANIA ZAMÓWIENIA W KOSZYKU
+   ========================================================================== */
+.cart-planning {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.cart-planning__title {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  color: var(--ink);
+}
+
+/* Przełącznik Odbiór / Dostawa w formie eleganckich zakładek */
+.cart-planning__toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+  background: var(--sand);
+  padding: 0.3rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.toggle-btn {
+  padding: 0.65rem 0.5rem;
+  border: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.toggle-btn:hover {
+  color: var(--ink);
+}
+
+.toggle-btn.active {
+  background: var(--burgundy);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(110, 30, 43, 0.25);
+  font-weight: 600;
+}
+
+/* Baner o koszcie dostawy */
+.delivery-info-banner {
+  background: var(--sand);
+  border-left: 3px solid var(--olive);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.8rem;
+  color: var(--ink);
+  margin-bottom: 1.1rem;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Grupy pól formularza (etykieta nad polem) */
+.cart-planning__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.cart-planning__group label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cart-planning__group input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cart-planning__group input::placeholder {
+  color: #b5ada2;
+}
+
+.cart-planning__group input:focus {
+  outline: none;
+  border-color: var(--burgundy);
+  box-shadow: 0 0 0 2px rgba(110, 30, 43, 0.1);
+}
+
+/* Układ dwóch kolumn dla daty/godziny oraz telefonu/maila */
+.cart-planning__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+/* Komunikat błędu walidacji */
+.cart-planning__error {
+  color: #b3261e;
+  background: #fdecea;
+  border-left: 3px solid #b3261e;
+  padding: 0.75rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+/* Wiersz podsumowania kosztu dostawy w stopce */
+.cart-sidebar__sub-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
