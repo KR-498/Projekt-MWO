@@ -59,7 +59,7 @@ export default function Menu() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/dishes")
+    fetch("http://localhost:4000/api/dishes")
       .then((res) => {
         if (!res.ok) throw new Error("Błąd połączenia z serwerem");
         return res.json();
