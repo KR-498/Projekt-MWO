@@ -43,6 +43,7 @@ export default function Reservation() {
   const [selectedDate, setSelectedDate] = useState("");
   const [phonePrefix, setPhonePrefix] = useState("+48");
   const [customPrefix, setCustomPrefix] = useState("+");
+  const [phone, setPhone] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [assignedTable, setAssignedTable] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +81,12 @@ export default function Reservation() {
     } else {
       setCustomPrefix("");
     }
+  };
+
+  const handlePhoneChange = (e) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+    const formatted = digits.match(/.{1,3}/g)?.join(" ") || "";
+    setPhone(formatted);
   };
 
   const handleSubmit = async (e) => {
@@ -160,6 +167,7 @@ export default function Reservation() {
       setSelectedDate("");
       setPhonePrefix("+48");
       setCustomPrefix("+");
+      setPhone("");
     } catch (err) {
       setError(err.message || "Błąd połączenia z serwerem.");
     } finally {
@@ -257,8 +265,11 @@ export default function Reservation() {
                   type="tel"
                   id="phone"
                   name="phone"
+                  value={phone}
+                  onChange={handlePhoneChange}
                   placeholder="600 700 800"
                   autoComplete="tel-national"
+                  maxLength={11}
                   pattern="[\d\s()\-]{6,15}"
                   required
                 />

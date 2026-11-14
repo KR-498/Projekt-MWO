@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 
-dotenv.config({ path: [".env.local", ".env"] });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -145,9 +145,14 @@ async function sendReservationEmail({
   guestsCount,
   assignedTable,
 }) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  const configResult = await pool.query(
+    "SELECT email_user, email_pass, email_from FROM email_config LIMIT 1",
+  );
+  const config = configResult.rows[0];
+
+  if (!config || !config.email_user || !config.email_pass) {
     console.warn(
-      "Brak konfiguracji EMAIL_USER / EMAIL_PASS w .env – pominięto wysyłkę maila",
+      "Brak konfiguracji e-mail w tabeli email_config – pominięto wysyłkę maila",
     );
     return;
   }
@@ -157,13 +162,13 @@ async function sendReservationEmail({
     port: 587,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: config.email_user,
+      pass: config.email_pass,
     },
   });
 
   await transporter.sendMail({
-    from: `"Restauracja" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+    from: `"Restauracja" <${config.email_from || config.email_user}>`,
     to: email,
     subject: "Potwierdzenie rezerwacji",
     html: `
