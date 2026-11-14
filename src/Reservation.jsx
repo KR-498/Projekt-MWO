@@ -46,6 +46,7 @@ export default function Reservation() {
   const [phone, setPhone] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [assignedTable, setAssignedTable] = useState(null);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -94,6 +95,7 @@ export default function Reservation() {
     setError(null);
     setIsSubmitted(false);
     setAssignedTable(null);
+    setConfirmedEmail("");
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -162,6 +164,9 @@ export default function Reservation() {
       }
 
       setAssignedTable(data.reservation?.table_number ?? null);
+      setConfirmedEmail(
+        data.reservation?.email || String(payload.email || ""),
+      );
       setIsSubmitted(true);
       form.reset();
       setSelectedDate("");
@@ -302,7 +307,7 @@ export default function Reservation() {
                   name="time"
                   min={openingHours.open || "17:00"}
                   max={openingHours.close || "22:30"}
-                  step={900}
+                  step={60}
                   disabled={openingHours.closed}
                   required
                 />
@@ -349,6 +354,13 @@ export default function Reservation() {
               >
                 Dziękujemy! Twoja rezerwacja została przyjęta
                 {assignedTable ? ` (Stolik nr ${assignedTable}).` : "."}
+                {confirmedEmail && (
+                  <>
+                    {" "}
+                    Potwierdzenie zostało wysłane na adres{" "}
+                    <strong>{confirmedEmail}</strong>.
+                  </>
+                )}
               </p>
             )}
           </form>
