@@ -1,4 +1,25 @@
+import { useState, useEffect } from 'react';
+
 export default function Kontakt() {
+  const [openingHours, setOpeningHours] = useState([]);
+  const [hoursLoaded, setHoursLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/api/opening-hours')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setOpeningHours(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Błąd pobierania godzin otwarcia:', err);
+      })
+      .finally(() => {
+        setHoursLoaded(true);
+      });
+  }, []);
+
   return (
     <main className="main-content">
       {/* BANER HERO DLA PODSTRONY KONTAKTU */}
@@ -23,11 +44,20 @@ export default function Kontakt() {
           
           <div className="detail-block">
             <h2>Godziny otwarcia</h2>
-            <p className="caption">Dinner Tuesday — Sunday</p>
-            <p>Wtorek — Czwartek: 17:00 — 22:30</p>
-            <p>Piątek — Sobota: 17:00 — 23:30</p>
-            <p>Niedziela: 16:00 — 21:30</p>
-            <p>Poniedziałek: Zamknięte</p>
+            {!hoursLoaded ? (
+              <p>Ładowanie godzin otwarcia...</p>
+            ) : openingHours.length > 0 ? (
+              openingHours.map((row) => (
+                <p key={row.id}>
+                  {row.days_label}:{' '}
+                  {row.open_time && row.close_time
+                    ? `${String(row.open_time).slice(0, 5)} — ${String(row.close_time).slice(0, 5)}`
+                    : 'Zamknięte'}
+                </p>
+              ))
+            ) : (
+              <p>Brak danych o godzinach otwarcia.</p>
+            )}
           </div>
           
           <div className="detail-block">

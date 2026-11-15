@@ -46,6 +46,23 @@ app.get("/api/dishes", async (req, res) => {
   }
 });
 
+// Pobieranie godzin otwarcia z bazy danych
+app.get("/api/opening-hours", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, days_label, open_time, close_time, display_order
+      FROM opening_hours
+      ORDER BY display_order, id;
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Błąd podczas pobierania godzin otwarcia:", err.message);
+    res
+      .status(500)
+      .json({ error: "Błąd serwera podczas pobierania godzin otwarcia" });
+  }
+});
+
 // Przyjmowanie zamówień i zapis w bazie danych
 app.post("/api/orders", async (req, res) => {
   const { items, totalPrice } = req.body;
@@ -119,21 +136,57 @@ function isDateTimeInPast(dateStr, timeStr) {
   return target < new Date();
 }
 
-// Zwraca godziny otwarcia dla podanej daty ("YYYY-MM-DD") lub null, jeśli w tym dniu restauracja jest zamknięta
-function getOpeningHours(dateStr) {
-  const [year, month, day] = String(dateStr).split("-").map(Number);
-  const dayOfWeek = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+function parseIsoDayName(str) {
+  const s = String(str || "")
+    .trim()
+    .toLowerCase();
+  if (s.startsWith("pon")) return 1;
+  if (s.startsWith("wt")) return 2;
+  if (s.startsWith("śr") || s.startsWith("sr")) return 3;
+  if (s.startsWith("czw")) return 4;
+  if (s.startsWith("pi") || s.startsWith("pt")) return 5;
+  if (s.startsWith("sob") || s.startsWith("sb")) return 6;
+  if (s.startsWith("nie") || s.startsWith("nd")) return 7;
+  return null;
+}
 
-  if (dayOfWeek === 1) {
-    return null; // Poniedziałek: Zamknięte
+function doesLabelMatchDay(daysLabel, isoDay) {
+  const parts = String(daysLabel || "").split(/\s*(?:[-–—]|\bdo\b)\s*/i);
+  if (parts.length >= 2) {
+    const start = parseIsoDayName(parts[0]);
+    const end = parseIsoDayName(parts[1]);
+    if (start !== null && end !== null) {
+      return start <= end
+        ? isoDay >= start && isoDay <= end
+        : isoDay >= start || isoDay <= end;
+    }
   }
-  if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-    return { open: "17:00", close: "22:30" }; // Wtorek — Czwartek
+  const single = parseIsoDayName(parts[0]);
+  return single !== null && isoDay === single;
+}
+
+// Pobiera godziny otwarcia z bazy danych dla podanej daty ("YYYY-MM-DD") lub zwraca null, jeśli lokal jest zamknięty
+async function getOpeningHours(dateStr) {
+  const [year, month, day] = String(dateStr).split("-").map(Number);
+  const jsDay = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+  const isoDay = jsDay === 0 ? 7 : jsDay;
+
+  const result = await pool.query(
+    "SELECT days_label, open_time, close_time FROM opening_hours ORDER BY display_order, id",
+  );
+
+  for (const row of result.rows) {
+    if (doesLabelMatchDay(row.days_label, isoDay)) {
+      if (!row.open_time || !row.close_time) {
+        return null;
+      }
+      return {
+        open: String(row.open_time).slice(0, 5),
+        close: String(row.close_time).slice(0, 5),
+      };
+    }
   }
-  if (dayOfWeek === 5 || dayOfWeek === 6) {
-    return { open: "17:00", close: "23:30" }; // Piątek — Sobota
-  }
-  return { open: "16:00", close: "21:30" }; // Niedziela
+  return null;
 }
 
 // Wysyła e-mail z potwierdzeniem rezerwacji na adres podany przez gościa
@@ -223,28 +276,27 @@ app.post("/api/reservations", async (req, res) => {
     });
   }
 
-  const openingHours = getOpeningHours(reservationDate);
-  if (!openingHours) {
-    return res.status(400).json({
-      error:
-        "W poniedziałki restauracja jest zamknięta. Zapraszamy od wtorku do niedzieli.",
-    });
-  }
-
-  const requestedMinutes = timeToMinutes(reservationTime);
-  const openMinutes = timeToMinutes(openingHours.open);
-  const closeMinutes = timeToMinutes(openingHours.close);
-
-  if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
-    return res.status(400).json({
-      error: `W wybranym dniu restauracja czynna jest w godzinach ${openingHours.open}–${openingHours.close}.`,
-    });
-  }
-
   const TOTAL_TABLES = 50;
   const MIN_DIFF_MINUTES = 180; // 3 godziny = 180 minut
 
   try {
+    const openingHours = await getOpeningHours(reservationDate);
+    if (!openingHours) {
+      return res.status(400).json({
+        error: "W wybranym dniu restauracja jest zamknięta.",
+      });
+    }
+
+    const requestedMinutes = timeToMinutes(reservationTime);
+    const openMinutes = timeToMinutes(openingHours.open);
+    const closeMinutes = timeToMinutes(openingHours.close);
+
+    if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
+      return res.status(400).json({
+        error: `W wybranym dniu restauracja czynna jest w godzinach ${openingHours.open}–${openingHours.close}.`,
+      });
+    }
+
     // 1. Pobieramy istniejące rezerwacje w wybranym dniu
     const existingResult = await pool.query(
       `SELECT table_number, reservation_time

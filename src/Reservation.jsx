@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function getTodayDateString() {
   const now = new Date();
@@ -15,23 +15,56 @@ function isDateTimeInPast(dateStr, timeStr) {
   return target < new Date();
 }
 
-function getOpeningHoursForDate(dateStr) {
-  if (!dateStr) {
-    return { open: "16:00", close: "23:30", closed: false };
+function parseIsoDayName(str) {
+  const s = String(str || "")
+    .trim()
+    .toLowerCase();
+  if (s.startsWith("pon")) return 1;
+  if (s.startsWith("wt")) return 2;
+  if (s.startsWith("śr") || s.startsWith("sr")) return 3;
+  if (s.startsWith("czw")) return 4;
+  if (s.startsWith("pi") || s.startsWith("pt")) return 5;
+  if (s.startsWith("sob") || s.startsWith("sb")) return 6;
+  if (s.startsWith("nie") || s.startsWith("nd")) return 7;
+  return null;
+}
+
+function doesLabelMatchDay(daysLabel, isoDay) {
+  const parts = String(daysLabel || "").split(/\s*(?:[-–—]|\bdo\b)\s*/i);
+  if (parts.length >= 2) {
+    const start = parseIsoDayName(parts[0]);
+    const end = parseIsoDayName(parts[1]);
+    if (start !== null && end !== null) {
+      return start <= end
+        ? isoDay >= start && isoDay <= end
+        : isoDay >= start || isoDay <= end;
+    }
+  }
+  const single = parseIsoDayName(parts[0]);
+  return single !== null && isoDay === single;
+}
+
+function getOpeningHoursForDate(dateStr, hoursRows) {
+  if (!dateStr || !hoursRows || hoursRows.length === 0) {
+    return { open: null, close: null, closed: false };
   }
   const [year, month, day] = String(dateStr).split("-").map(Number);
-  const dayOfWeek = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+  const jsDay = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+  const isoDay = jsDay === 0 ? 7 : jsDay;
 
-  if (dayOfWeek === 1) {
-    return { open: null, close: null, closed: true }; // Poniedziałek: Zamknięte
+  for (const row of hoursRows) {
+    if (doesLabelMatchDay(row.days_label, isoDay)) {
+      if (!row.open_time || !row.close_time) {
+        return { open: null, close: null, closed: true };
+      }
+      return {
+        open: String(row.open_time).slice(0, 5),
+        close: String(row.close_time).slice(0, 5),
+        closed: false,
+      };
+    }
   }
-  if (dayOfWeek >= 2 && dayOfWeek <= 4) {
-    return { open: "17:00", close: "22:30", closed: false }; // Wtorek — Czwartek
-  }
-  if (dayOfWeek === 5 || dayOfWeek === 6) {
-    return { open: "17:00", close: "23:30", closed: false }; // Piątek — Sobota
-  }
-  return { open: "16:00", close: "21:30", closed: false }; // Niedziela
+  return { open: null, close: null, closed: true };
 }
 
 function timeToMinutes(timeStr) {
@@ -49,9 +82,23 @@ export default function Reservation() {
   const [confirmedEmail, setConfirmedEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [openingHoursRows, setOpeningHoursRows] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/api/opening-hours")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setOpeningHoursRows(data);
+        }
+      })
+      .catch((err) => {
+        console.error("Błąd pobierania godzin otwarcia:", err);
+      });
+  }, []);
 
   const todayStr = getTodayDateString();
-  const openingHours = getOpeningHoursForDate(selectedDate);
+  const openingHours = getOpeningHoursForDate(selectedDate, openingHoursRows);
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;
@@ -62,10 +109,10 @@ export default function Reservation() {
       return;
     }
 
-    const hours = getOpeningHoursForDate(newDate);
+    const hours = getOpeningHoursForDate(newDate, openingHoursRows);
     if (hours.closed) {
       setError(
-        "W poniedziałki restauracja jest zamknięta. Prosimy wybrać inny dzień.",
+        "W wybranym dniu restauracja jest zamknięta. Prosimy wybrać inny dzień.",
       );
     } else {
       setError(null);
@@ -107,23 +154,23 @@ export default function Reservation() {
       return;
     }
 
-    const hours = getOpeningHoursForDate(dateVal);
-    if (hours.closed) {
-      setError(
-        "W poniedziałki restauracja jest zamknięta. Zapraszamy od wtorku do niedzieli.",
-      );
-      return;
-    }
+    if (openingHoursRows.length > 0) {
+      const hours = getOpeningHoursForDate(dateVal, openingHoursRows);
+      if (hours.closed) {
+        setError("W wybranym dniu restauracja jest zamknięta.");
+        return;
+      }
 
-    const reqMinutes = timeToMinutes(timeVal);
-    if (
-      reqMinutes < timeToMinutes(hours.open) ||
-      reqMinutes > timeToMinutes(hours.close)
-    ) {
-      setError(
-        `W wybranym dniu restauracja czynna jest w godzinach ${hours.open}–${hours.close}.`,
-      );
-      return;
+      const reqMinutes = timeToMinutes(timeVal);
+      if (
+        reqMinutes < timeToMinutes(hours.open) ||
+        reqMinutes > timeToMinutes(hours.close)
+      ) {
+        setError(
+          `W wybranym dniu restauracja czynna jest w godzinach ${hours.open}–${hours.close}.`,
+        );
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -297,7 +344,7 @@ export default function Reservation() {
               <div className="field">
                 <label htmlFor="time">
                   Godzina
-                  {selectedDate && !openingHours.closed
+                  {selectedDate && !openingHours.closed && openingHours.open
                     ? ` (${openingHours.open}–${openingHours.close})`
                     : ""}
                 </label>
@@ -305,8 +352,8 @@ export default function Reservation() {
                   type="time"
                   id="time"
                   name="time"
-                  min={openingHours.open || "17:00"}
-                  max={openingHours.close || "22:30"}
+                  min={openingHours.open || undefined}
+                  max={openingHours.close || undefined}
                   step={60}
                   disabled={openingHours.closed}
                   required

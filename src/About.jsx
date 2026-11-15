@@ -1,4 +1,25 @@
+import { useState, useEffect } from 'react';
+
 export default function About() {
+  const [openingHours, setOpeningHours] = useState([]);
+  const [hoursLoaded, setHoursLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch('http://localhost:4000/api/opening-hours')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setOpeningHours(data);
+        }
+      })
+      .catch((err) => {
+        console.error('Błąd pobierania godzin otwarcia:', err);
+      })
+      .finally(() => {
+        setHoursLoaded(true);
+      });
+  }, []);
+
   return (
     <>
       <main className="section">
@@ -87,10 +108,23 @@ export default function About() {
             </div>
             <div>
               <h3>Godziny otwarcia</h3>
-              <p>
-                Wtorek–czwartek 17–22<br />
-                Piątek–niedziela 17–23
-              </p>
+              {!hoursLoaded ? (
+                <p>Ładowanie godzin otwarcia...</p>
+              ) : openingHours.length > 0 ? (
+                <p>
+                  {openingHours.map((row, index) => (
+                    <span key={row.id ?? index}>
+                      {index > 0 && <br />}
+                      {row.days_label}{' '}
+                      {row.open_time && row.close_time
+                        ? `${String(row.open_time).slice(0, 5)}–${String(row.close_time).slice(0, 5)}`
+                        : 'Zamknięte'}
+                    </span>
+                  ))}
+                </p>
+              ) : (
+                <p>Brak danych o godzinach otwarcia.</p>
+              )}
             </div>
             <div>
               <h3>Kontakt</h3>
