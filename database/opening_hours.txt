@@ -1,0 +1,14 @@
+-- Godziny otwarcia --
+CREATE TABLE IF NOT EXISTS opening_hours (
+  id SERIAL PRIMARY KEY,
+  days_label VARCHAR(50) NOT NULL,
+  open_time TIME NOT NULL,
+  close_time TIME NOT NULL,
+  display_order INT NOT NULL
+);
+
+-- Wstawienie danych --
+INSERT INTO opening_hours (days_label, open_time, close_time, display_order)
+VALUES
+    ('Wtorek–czwartek', '17:00', '22:00', 1),
+    ('Piątek–niedziela', '17:00', '23:00', 2);

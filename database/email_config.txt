@@ -1,0 +1,15 @@
+-- Konfiguracja adresu e-mail --
+CREATE TABLE IF NOT EXISTS email_config (
+    id SERIAL PRIMARY KEY,
+    email_user VARCHAR(255) NOT NULL,
+    email_pass TEXT NOT NULL,
+    email_from VARCHAR(255) NOT NULL
+);
+
+-- Wstawienie danych --
+INSERT INTO email_config (email_user, email_pass, email_from)
+VALUES (
+    'c31bce001@smtp-brevo.com',
+    'xsmtpsib-b04973c0a070165af479896e2644b0af863648143797c381a76b2d24b6d2890f-Nj1wIJP9W7cMEbX2',
+    'restauracja000@gmail.com'
+);
