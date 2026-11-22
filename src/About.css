@@ -1,0 +1,122 @@
+/* Nagłówek i sekcje treści w About.jsx */
+.about-header {
+    margin-bottom: 4rem;
+}
+
+.about-lead {
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin-top: 1rem;
+}
+
+.about-section {
+    margin-bottom: 4rem;
+}
+
+.about-section--compact {
+    margin-bottom: 2rem;
+}
+
+.about-article {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-top: 1.5rem;
+}
+
+.about-article p + p {
+    margin-top: 1rem;
+}
+
+/* Cytat w sekcji Nasza Filozofia */
+.about-quote {
+    border-left: 3px solid var(--burgundy);
+    padding-left: 1.5rem;
+    margin: 2rem 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--ink);
+}
+
+.about-quote footer {
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+}
+
+/* Lista wartości */
+.about-subheading {
+    font-size: 1.4rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.about-values {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.about-values li {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1rem;
+}
+
+.about-values strong {
+    color: var(--burgundy);
+}
+
+.about-values span {
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+/* Stopka i ikonki Fontello */
+.about-address {
+    font-style: normal;
+}
+
+/* Stopka i ikonki Fontello — odporne na nadpisanie po F5 */
+footer.find .social.about-social li a {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+footer.find .social.about-social li a i {
+    color: #ffffff !important;
+    background: transparent !important;
+    font-size: 1.1rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+footer.find .social.about-social li a i::before {
+    font-family: "fontello" !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    display: block !important;
+}
+
+footer.find .social.about-social li a:hover,
+footer.find .social.about-social li a:hover i,
+footer.find .social.about-social li a:hover i::before {
+    color: #c5a059 !important;
+    background-color: transparent !important;
+}
