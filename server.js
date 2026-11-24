@@ -64,61 +64,164 @@ app.get("/api/opening-hours", async (req, res) => {
 });
 
 // Przyjmowanie zamówień i zapis w bazie danych
-app.post("/api/orders", async (req, res) => {
-  const { items, totalPrice } = req.body;
+// Przyjmowanie zamówień i zapis w bazie danych (z planowaniem dostawy i walidacją godzin)
+// Przyjmowanie zamówień i zapis w bazie danych
+app.post('/api/orders', async (req, res) => {
+    console.log('--- NOWE ZAMÓWIENIE Z FRONTU ---');
+    console.log('ODEBRANE BODY:', JSON.stringify(req.body, null, 2));
+    const {
+        items,
+        customerName,
+        customerEmail,
+        customerPhone,
+        deliveryType,
+        deliveryStreet,
+        deliveryCity,
+        deliveryNotes,
+        scheduledDate,
+        scheduledTime
+    } = req.body;
 
-  if (!items || items.length === 0) {
-    return res.status(400).json({ error: "Koszyk nie może być pusty." });
-  }
-
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN"); // Rozpoczęcie transakcji
-
-    // 1. Wstawienie zamówienia głównego
-    const orderQuery = `
-            INSERT INTO orders (total_price)
-            VALUES ($1)
-                RETURNING id;
-        `;
-    const orderResult = await client.query(orderQuery, [totalPrice]);
-    const orderId = orderResult.rows[0].id;
-
-    // 2. Wstawienie pozycji z koszyka (kolejność kolumn ułożona pod tablicę poniżej)
-    const itemQuery = `
-            INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
-            VALUES ($1, $2, $3, $4, $5, $6);
-        `;
-
-    for (const item of items) {
-      await client.query(itemQuery, [
-        orderId, // $1 -> order_id (INT)
-        item.dish_id || item.id, // $2 -> dish_id (INT)
-        item.dish_name || item.name, // $3 -> dish_name (TEXT)
-        item.quantity, // $4 -> quantity (INT)
-        item.price, // $5 -> price (NUMERIC)
-        item.special_notes || item.notes || null, // $6 -> special_notes (TEXT)
-      ]);
+    // 1. Walidacja koszyka i podstawowych danych
+    if (!items || items.length === 0) {
+        return res.status(400).json({ error: 'Koszyk nie może być pusty.' });
+    }
+    if (!customerName || !customerPhone || !scheduledDate || !scheduledTime) {
+        return res.status(400).json({ error: 'Uzupełnij imię, telefon, datę oraz godzinę.' });
+    }
+    if (deliveryType === 'delivery' && (!deliveryStreet?.trim() || !deliveryCity?.trim())) {
+        return res.status(400).json({ error: 'Podaj pełny adres dostawy (ulica i miasto).' });
     }
 
-    await client.query("COMMIT"); // Zatwierdzenie zmian
+    // 2. Walidacja przeszłości oraz 45-minutowego bufora na przygotowanie
+    if (isDateTimeInPast(scheduledDate, scheduledTime)) {
+        return res.status(400).json({ error: 'Wybrany termin już minął.' });
+    }
 
-    res.status(201).json({
-      success: true,
-      message: "Zamówienie zostało pomyślnie zapisane!",
-      orderId: orderId,
-    });
-  } catch (err) {
-    await client.query("ROLLBACK"); // Wycofanie zmian przy błędzie
-    console.error("Błąd podczas zapisywania zamówienia:", err.message);
-    res
-      .status(500)
-      .json({ error: "Wystąpił błąd serwera podczas składania zamówienia." });
-  } finally {
-    client.release();
-  }
+    const [year, month, day] = String(scheduledDate).split('-').map(Number);
+    const [hours, minutes] = String(scheduledTime).split(':').map(Number);
+    const targetDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+    const minPreparationTime = new Date(Date.now() + 45 * 60 * 1000);
+
+    if (targetDateTime < minPreparationTime) {
+        return res.status(400).json({
+            error: 'Potrzebujemy minimum 45 minut na przygotowanie zamówienia. Wybierz późniejszą godzinę.'
+        });
+    }
+
+    try {
+        // 3. Walidacja godzin otwarcia (zgodnie z getOpeningHours w server.js: zwraca { open, close } lub null)
+        const openingHours = await getOpeningHours(scheduledDate);
+
+        if (!openingHours) {
+            return res.status(400).json({
+                error: 'W wybranym dniu restauracja jest zamknięta. Wybierz inny termin.'
+            });
+        }
+
+        const requestedMinutes = timeToMinutes(scheduledTime);
+        const openMinutes = timeToMinutes(openingHours.open);
+        const closeMinutes = timeToMinutes(openingHours.close) - 30; // Kuchnia zamyka się 30 min przed końcem
+
+        if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
+            const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, '0')}:${String(closeMinutes % 60).padStart(2, '0')}`;
+            return res.status(400).json({
+                error: `W wybranym dniu zamówienia realizujemy w godzinach ${openingHours.open}–${lastOrderHour}.`
+            });
+        }
+
+        // 4. Bezpieczne przeliczenie kwoty i kosztu dostawy na backendzie
+        const parseSafeNumber = (val) => {
+            if (typeof val === 'number' && !Number.isNaN(val)) return val;
+            if (typeof val === 'string') {
+                const cleaned = val.replace(',', '.').replace(/[^\d.-]/g, '');
+                const parsed = parseFloat(cleaned);
+                return Number.isNaN(parsed) ? 0 : parsed;
+            }
+            return 0;
+        };
+
+        const itemsSubtotal = items.reduce((sum, item) => {
+            const unitPrice = parseSafeNumber(item.price ?? item.unit_price ?? (item.total_price / (item.quantity || 1)));
+            const qty = parseSafeNumber(item.quantity) || 1;
+            return sum + (unitPrice * qty);
+        }, 0);
+
+        const deliveryFee = (deliveryType === 'delivery' && itemsSubtotal < 150) ? 15.00 : 0.00;
+        const finalTotalPrice = Number((itemsSubtotal + deliveryFee).toFixed(2));
+
+        // 5. Zapis w transakcji SQL
+        const client = await pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const orderQuery = `
+                INSERT INTO orders (
+                    total_price, delivery_fee, customer_name, customer_email, customer_phone,
+                    delivery_type, delivery_street, delivery_city, delivery_notes,
+                    scheduled_date, scheduled_time
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                RETURNING id;
+            `;
+
+            const orderValues = [
+                finalTotalPrice,
+                deliveryFee,
+                customerName.trim(),
+                customerEmail ? customerEmail.trim() : null,
+                customerPhone.trim(),
+                deliveryType,
+                deliveryType === 'delivery' ? deliveryStreet.trim() : null,
+                deliveryType === 'delivery' ? deliveryCity.trim() : null,
+                deliveryType === 'delivery' && deliveryNotes ? deliveryNotes.trim() : null,
+                scheduledDate,
+                scheduledTime
+            ];
+
+            const orderResult = await client.query(orderQuery, orderValues);
+            const orderId = orderResult.rows[0].id;
+
+            const itemQuery = `
+                INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
+                VALUES ($1, $2, $3, $4, $5, $6);
+            `;
+
+            for (const item of items) {
+                await client.query(itemQuery, [
+                    orderId,
+                    item.dish_id || item.id,
+                    item.dish_name || item.name,
+                    item.quantity,
+                    parseSafeNumber(item.price),
+                    item.special_notes || item.notes || null
+                ]);
+            }
+
+            await client.query('COMMIT');
+
+            res.status(201).json({
+                success: true,
+                message: 'Zamówienie zostało pomyślnie zapisane!',
+                orderId: orderId,
+                finalTotal: finalTotalPrice
+            });
+
+        } catch (dbErr) {
+            await client.query('ROLLBACK');
+            throw dbErr;
+        } finally {
+            client.release();
+        }
+
+    } catch (err) {
+        console.error('Błąd podczas zapisywania zamówienia:', err.message);
+        res.status(500).json({ error: 'Wystąpił błąd serwera podczas składania zamówienia.' });
+    }
 });
+
+
 
 // Pomocnicza funkcja zamieniająca godzinę "HH:MM" lub "HH:MM:SS" na minuty od północy
 function timeToMinutes(timeStr) {
