@@ -2,7 +2,18 @@
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     total_price NUMERIC(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Europe/Warsaw')
+    created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Europe/Warsaw'),
+    customer_name VARCHAR(100) NOT NULL DEFAULT 'Klient',
+    customer_email VARCHAR(100),
+    customer_phone VARCHAR(20) NOT NULL DEFAULT '',
+    delivery_type VARCHAR(20) NOT NULL DEFAULT 'pickup',
+    delivery_street VARCHAR(150),
+    delivery_city VARCHAR(100),
+    delivery_notes TEXT,
+    delivery_fee NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    scheduled_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    scheduled_time TIME NOT NULL DEFAULT CURRENT_TIME,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
