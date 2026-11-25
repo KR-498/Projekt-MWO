@@ -228,7 +228,28 @@ app.post('/api/orders', async (req, res) => {
             }
 
             await client.query('COMMIT');
-
+            if (customerEmail && customerEmail.trim()) {
+                try {
+                    await sendOrderEmail({
+                        orderId,
+                        customerName: customerName.trim(),
+                        customerEmail: customerEmail.trim(),
+                        customerPhone: customerPhone.trim(),
+                        deliveryType,
+                        deliveryStreet: deliveryStreet ? deliveryStreet.trim() : null,
+                        deliveryCity: deliveryCity ? deliveryCity.trim() : null,
+                        deliveryNotes: deliveryNotes ? deliveryNotes.trim() : null,
+                        deliveryFee,
+                        scheduledDate,
+                        scheduledTime,
+                        items,
+                        finalTotalPrice,
+                    });
+                    console.log(`Potwierdzenie zamówienia wysłane na: ${customerEmail.trim()}`);
+                } catch (emailErr) {
+                    console.error("Błąd podczas wysyłania e-maila z zamówieniem:", emailErr.message);
+                }
+            }
             res.status(201).json({
                 success: true,
                 message: 'Zamówienie zostało pomyślnie zapisane!',
@@ -368,6 +389,83 @@ async function sendReservationEmail({
                 <p>Do zobaczenia!</p>
             </div>
         `,
+  });
+}
+// Wysyła e-mail z potwierdzeniem zamówienia na adres podany przez klienta
+async function sendOrderEmail({
+  orderId,
+  customerName,
+  customerEmail,
+  customerPhone,
+  deliveryType,
+  deliveryStreet,
+  deliveryCity,
+  deliveryNotes,
+  deliveryFee,
+  scheduledDate,
+  scheduledTime,
+  items,
+  finalTotalPrice,
+}) {
+  const configResult = await pool.query(
+    "SELECT email_user, email_pass, email_from FROM email_config LIMIT 1"
+  );
+  const config = configResult.rows[0];
+
+  if (!config || !config.email_user || !config.email_pass) {
+    console.warn("Brak konfiguracji e-mail w tabeli email_config – pominięto wysyłkę maila");
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: ["smtp-relay", "brevo.com"].join("."),
+    port: 587,
+    secure: false,
+    auth: {
+      user: config.email_user,
+      pass: config.email_pass,
+    },
+  });
+
+  const itemsListHtml = items
+    .map(
+      (item) =>
+        `<li><strong>${item.dish_name || item.name}</strong> × ${item.quantity} — ${(
+          Number(item.price) * Number(item.quantity)
+        ).toFixed(2)} zł${
+          item.special_notes || item.notes ? ` <em>(${item.special_notes || item.notes})</em>` : ""
+        }</li>`
+    )
+    .join("");
+
+  const deliveryDetailsHtml =
+    deliveryType === "delivery"
+      ? `<li><strong>Sposób realizacji:</strong> Dostawa (${deliveryStreet}, ${deliveryCity})</li>
+         ${deliveryNotes ? `<li><strong>Uwagi dla kuriera:</strong> ${deliveryNotes}</li>` : ""}
+         <li><strong>Koszt dostawy:</strong> ${deliveryFee === 0 ? "Gratis" : `${deliveryFee.toFixed(2)} zł`}</li>`
+      : `<li><strong>Sposób realizacji:</strong> Odbiór osobisty w restauracji</li>`;
+
+  await transporter.sendMail({
+    from: `"Restauracja" <${config.email_from || config.email_user}>`,
+    to: customerEmail,
+    subject: `Potwierdzenie zamówienia nr #${orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #24201c; line-height: 1.6;">
+        <h2>Dziękujemy za zamówienie w naszej restauracji</h2>
+        <p>Cześć <strong>${customerName}</strong>, Twoje zamówienie <strong>#${orderId}</strong> zostało przyjęte do realizacji.</p>
+        <ul>
+          <li><strong>Zaplanowany termin:</strong> ${scheduledDate} o godz. ${scheduledTime}</li>
+          <li><strong>Telefon kontaktowy:</strong> ${customerPhone}</li>
+          ${deliveryDetailsHtml}
+        </ul>
+        <h3>Zamówione potrawy:</h3>
+        <ul>
+          ${itemsListHtml}
+        </ul>
+        <p style="font-size: 1.1rem;"><strong>Łącznie do zapłaty: ${finalTotalPrice.toFixed(2)} zł</strong></p>
+        <p>Do zobaczenia!</p>
+      </div>
+    `,
   });
 }
 
