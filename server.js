@@ -62,6 +62,34 @@ app.get("/api/opening-hours", async (req, res) => {
       .json({ error: "Błąd serwera podczas pobierania godzin otwarcia" });
   }
 });
+// Pobieranie godzin pracy kuchni dla konkretnej daty (podpowiedź w koszyku)
+app.get('/api/kitchen-hours', async (req, res) => {
+    const { date } = req.query;
+    if (!date) {
+        return res.status(400).json({ error: 'Brak parametru date.' });
+    }
+
+    try {
+        const hours = await getOpeningHours(date);
+        if (!hours) {
+            return res.json({ isClosed: true });
+        }
+
+        // Wyliczamy maksymalną godzinę przyjmowania zamówień (30 min przed zamknięciem)
+        const closeMinutes = timeToMinutes(hours.close) - 30;
+        const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, '0')}:${String(closeMinutes % 60).padStart(2, '0')}`;
+
+        res.json({
+            isClosed: false,
+            open: hours.open,
+            close: hours.close,
+            lastOrder: lastOrderHour
+        });
+    } catch (err) {
+        console.error('Błąd pobierania godzin otwarcia:', err.message);
+        res.status(500).json({ error: 'Błąd serwera' });
+    }
+});
 
 // Przyjmowanie zamówień i zapis w bazie danych
 // Przyjmowanie zamówień i zapis w bazie danych (z planowaniem dostawy i walidacją godzin)

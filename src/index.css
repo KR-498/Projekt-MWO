@@ -1285,7 +1285,7 @@ h2 {
   color: var(--muted);
   font-weight: 600;
 }
-
+.cart-planning__group select,
 .cart-planning__group input {
   width: 100%;
   padding: 0.7rem 0.85rem;
@@ -1301,7 +1301,7 @@ h2 {
 .cart-planning__group input::placeholder {
   color: #b5ada2;
 }
-
+.cart-planning__group select:focus,
 .cart-planning__group input:focus {
   outline: none;
   border-color: var(--burgundy);
@@ -1389,4 +1389,31 @@ h2 {
   font-weight: 600;
   color: var(--ink);
   user-select: none;
+}
+/* Podpowiedź godzin otwarcia pod wyborem daty w koszyku */
+.cart-planning__hours-hint {
+  font-size: 0.78rem;
+  color: var(--ink);
+  background: var(--sand);
+  border-left: 3px solid var(--olive);
+  padding: 0.55rem 0.75rem;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 1rem;
+  margin-top: -0.35rem;
+}
+
+.cart-planning__hours-hint.is-closed {
+  background: #fdecea;
+  border-left-color: #b3261e;
+  color: #b3261e;
+  font-weight: 500;
+}
+/* Wygląd zablokowanego przycisku zamówienia */
+.cart-sidebar__submit-btn:disabled {
+  background: #ccc4ba;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
+  box-shadow: none;
 }
