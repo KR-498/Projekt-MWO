@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useCart } from './CartContext';
 import { useAuth } from './AuthContext';
 import CartSidebar from './CartSidebar';
-
+import logo from './assets/logo.png'; 
 export default function Navbar() {
     const { cartItems, setIsCartOpen } = useCart();
     const { user, isAuthenticated, isAdmin, setIsAuthModalOpen, setIsAdminSettingsOpen, logout } = useAuth();
@@ -12,14 +12,21 @@ export default function Navbar() {
     return (
         <header id="hednav">
             <div className="site-brand">
-                <button className="brand">
-                    <div className="brand-mark">S</div>
+                <NavLink to="/" className="brand" style={{ textDecoration: 'none' }}>
+                    {/* LOGO */}
+                    <img 
+                        src={logo} 
+                        alt="Sapore & Amore Logo" 
+                        className="brand-logo" 
+                    />
                     <div>
-                        <strong>WSPANIAŁY TYTUŁ</strong>
-                        <small>RESTAURACJA</small>
+                        {/* SEKCJA NAZWY */}
+                        <strong>SAPORE & AMORE</strong>
+                        <small>RISTORANTE ITALIANO</small>
                     </div>
-                </button>
+                </NavLink>
             </div>
+
             <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                 <div className="nav-links">
                     <NavLink to="/" end className={({ isActive }) => isActive ? "nav-reserve" : ""}>Główna</NavLink>
@@ -77,7 +84,6 @@ export default function Navbar() {
                         Zaloguj
                     </button>
                 )}
-
 
                 {/* PRZYCISK OTWIERAJĄCY PANEL KOSZYKA */}
                 <button 
