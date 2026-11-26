@@ -1,9 +1,28 @@
 import { useState } from 'react';
 import { useCart } from './CartContext';
 import { useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 export default function CartSidebar() {
     const { cartItems, cartTotal, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, clearCart } = useCart();
+    const { user, token } = useAuth();
+
+    // Automatyczne uzupełnianie danych zalogowanego użytkownika przy otwarciu koszyka
+    useEffect(() => {
+        if (user) {
+            if (user.name) setCustomerName(user.name);
+            if (user.email) setCustomerEmail(user.email);
+            if (user.phone) {
+                // Wyciągamy same cyfry bez kierunkowego (+48) i formatujemy po 3 znaki
+                const digitsOnly = user.phone.replace(/^\+\d{1,3}\s*/, '').replace(/\D/g, '').slice(0, 9);
+                const formatted = digitsOnly.match(/.{1,3}/g)?.join(' ') || '';
+                if (formatted) setCustomerPhone(formatted);
+            }
+            if (user.default_street) setDeliveryStreet(user.default_street);
+            if (user.default_city) setDeliveryCity(user.default_city);
+        }
+    }, [user, isCartOpen]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState(null);
 
@@ -123,9 +142,14 @@ export default function CartSidebar() {
         };
 
         try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('http://localhost:4000/api/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify(orderPayload)
             });
 
