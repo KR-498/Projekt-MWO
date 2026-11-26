@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { CartProvider } from './CartContext';
 import { AuthProvider } from './AuthContext';
 import AuthModal from './AuthModal';
+import AdminSettingsModal from './AdminSettingsModal';
 
 import Navbar from './Navbar';
 import Home from './Home';
@@ -39,6 +40,7 @@ function AppContent() {
       </Routes>
 
       <AuthModal />
+      <AdminSettingsModal />
     </>
   );
 }

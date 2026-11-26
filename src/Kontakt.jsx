@@ -5,19 +5,25 @@ export default function Kontakt() {
   const [hoursLoaded, setHoursLoaded] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/opening-hours')
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setOpeningHours(data);
-        }
-      })
-      .catch((err) => {
-        console.error('Błąd pobierania godzin otwarcia:', err);
-      })
-      .finally(() => {
-        setHoursLoaded(true);
-      });
+    const fetchHours = () => {
+      fetch('http://localhost:4000/api/opening-hours')
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setOpeningHours(data);
+          }
+        })
+        .catch((err) => {
+          console.error('Błąd pobierania godzin otwarcia:', err);
+        })
+        .finally(() => {
+          setHoursLoaded(true);
+        });
+    };
+
+    fetchHours();
+    window.addEventListener('opening-hours-updated', fetchHours);
+    return () => window.removeEventListener('opening-hours-updated', fetchHours);
   }, []);
 
   return (

@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
 
   const [token, setToken] = useState(() => localStorage.getItem('restauracja_token') || null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAdminSettingsOpen, setIsAdminSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (token && user) {
@@ -56,7 +57,12 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setToken(null);
     setUser(null);
+    setIsAdminSettingsOpen(false);
   };
+
+  const isAdmin =
+    user?.role === 'admin' &&
+    String(user?.email || '').toLowerCase() === 'admin@admin.com';
 
   return (
     <AuthContext.Provider
@@ -64,9 +70,11 @@ export function AuthProvider({ children }) {
         user,
         token,
         isAuthenticated: Boolean(user && token),
-        isAdmin: user?.role === 'admin',
+        isAdmin,
         isAuthModalOpen,
         setIsAuthModalOpen,
+        isAdminSettingsOpen,
+        setIsAdminSettingsOpen,
         login,
         register,
         logout,
