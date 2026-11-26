@@ -1417,3 +1417,124 @@ h2 {
   transform: none;
   box-shadow: none;
 }
+/* ==========================================================================
+   NAWIGACJA: LOGOWANIE I PANEL UŻYTKOWNIKA
+   ========================================================================== */
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #ffffff; /* Jasny tekst na ciemnym tle strony głównej */
+}
+
+body.subpage .nav-user {
+  color: var(--ink); /* Ciemny tekst na jasnym tle podstron */
+}
+
+.nav-user__greeting {
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-user__badge {
+  background: var(--burgundy);
+  color: #ffffff;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.nav-user__logout {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.nav-user__logout:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffffff;
+}
+
+body.subpage .nav-user__logout {
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+body.subpage .nav-user__logout:hover {
+  border-color: var(--burgundy);
+  color: var(--burgundy);
+  background: transparent;
+}
+
+.nav-login-btn {
+  background: var(--burgundy);
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 0.95rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.nav-login-btn:hover {
+  background: #561621;
+}
+
+.nav-login-btn:active {
+  transform: scale(0.97);
+}
+/* Strona główna (ciemne tło): jasny, kremowy lub przezroczysty przycisk ze złotym/białym akcentem */
+.nav-login-btn {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  padding: 0.45rem 0.95rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-login-btn:hover {
+  background: #ffffff;
+  color: var(--ink);
+  border-color: #ffffff;
+}
+
+/* Podstrony (jasne tło): wyraźny burgundowy przycisk */
+body.subpage .nav-login-btn {
+  background: var(--burgundy);
+  color: #ffffff;
+  border: 1px solid var(--burgundy);
+}
+
+body.subpage .nav-login-btn:hover {
+  background: #561621;
+  border-color: #561621;
+  color: #ffffff;
+}
+
+.nav-login-btn:active {
+  transform: scale(0.97);
+}

@@ -3,6 +3,11 @@ import pg from "pg";
 import cors from "cors";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "domyslny_sekretny_klucz_dev";
+
 
 dotenv.config();
 
@@ -91,10 +96,144 @@ app.get('/api/kitchen-hours', async (req, res) => {
     }
 });
 
+
+// Middleware: opcjonalne rozpoznanie zalogowanego użytkownika (nie blokuje gości)
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ").at(1);
+    try {
+      req.user = jwt.verify(token, JWT_SECRET);
+    } catch {
+      req.user = null;
+    }
+  } else {
+    req.user = null;
+  }
+  next();
+}
+
+// Middleware: wymaga zalogowania (przyda się np. do historii zamówień i przyszłych komentarzy)
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Wymagane zalogowanie." });
+  }
+  try {
+    req.user = jwt.verify(authHeader.split(" ").at(1), JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: "Sesja wygasła lub nieprawidłowy token." });
+  }
+}
+
+// Middleware: wymaga roli administratora (na przyszłość do edycji godzin otwarcia)
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ error: "Brak uprawnień administratora." });
+  }
+  next();
+}
+
+// REJESTRACJA NOWEGO UŻYTKOWNIKA
+app.post("/api/auth/register", async (req, res) => {
+  const { name, email, phone, password } = req.body;
+
+  if (!name?.trim() || !email?.trim() || !password || password.length < 6) {
+    return res.status(400).json({
+      error: "Podaj imię, poprawny e-mail oraz hasło (minimum 6 znaków).",
+    });
+  }
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [normalizedEmail]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: "Konto z tym adresem e-mail już istnieje." });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      `INSERT INTO users (name, email, phone, password_hash, role)
+       VALUES ($1, $2, $3, $4, 'customer')
+       RETURNING id, name, email, phone, role, default_street, default_city`,
+      [name.trim(), normalizedEmail, phone ? phone.trim() : null, passwordHash]
+    );
+
+    const user = result.rows.at(0);
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(201).json({ token, user });
+  } catch (err) {
+    console.error("Błąd rejestracji:", err.message);
+    res.status(500).json({ error: "Błąd serwera podczas rejestracji." });
+  }
+});
+
+// LOGOWANIE UŻYTKOWNIKA
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email?.trim() || !password) {
+    return res.status(400).json({ error: "Podaj adres e-mail oraz hasło." });
+  }
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
+    const userRow = result.rows.at(0);
+
+    if (!userRow) {
+      return res.status(401).json({ error: "Nieprawidłowy e-mail lub hasło." });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, userRow.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Nieprawidłowy e-mail lub hasło." });
+    }
+
+    const user = {
+      id: userRow.id,
+      name: userRow.name,
+      email: userRow.email,
+      phone: userRow.phone,
+      role: userRow.role,
+      default_street: userRow.default_street,
+      default_city: userRow.default_city,
+    };
+
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({ token, user });
+  } catch (err) {
+    console.error("Błąd logowania:", err.message);
+    res.status(500).json({ error: "Błąd serwera podczas logowania." });
+  }
+});
+
+// POBIERANIE AKTUALNYCH DANYCH ZALOGOWANEGO UŻYTKOWNIKA
+app.get("/api/auth/me", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, name, email, phone, role, default_street, default_city FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const user = result.rows.at(0);
+    if (!user) return res.status(404).json({ error: "Użytkownik nie istnieje." });
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: "Błąd serwera." });
+  }
+});
+
 // Przyjmowanie zamówień i zapis w bazie danych
 // Przyjmowanie zamówień i zapis w bazie danych (z planowaniem dostawy i walidacją godzin)
 // Przyjmowanie zamówień i zapis w bazie danych
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', optionalAuth, async (req, res) => {
     console.log('--- NOWE ZAMÓWIENIE Z FRONTU ---');
     console.log('ODEBRANE BODY:', JSON.stringify(req.body, null, 2));
     const {
@@ -188,9 +327,9 @@ app.post('/api/orders', async (req, res) => {
                 INSERT INTO orders (
                     total_price, delivery_fee, customer_name, customer_email, customer_phone,
                     delivery_type, delivery_street, delivery_city, delivery_notes,
-                    scheduled_date, scheduled_time
+                    scheduled_date, scheduled_time, user_id
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                 RETURNING id;
             `;
 
@@ -205,8 +344,10 @@ app.post('/api/orders', async (req, res) => {
                 deliveryType === 'delivery' ? deliveryCity.trim() : null,
                 deliveryType === 'delivery' && deliveryNotes ? deliveryNotes.trim() : null,
                 scheduledDate,
-                scheduledTime
+                scheduledTime,
+                req.user ? req.user.id : null
             ];
+
 
             const orderResult = await client.query(orderQuery, orderValues);
             const orderId = orderResult.rows[0].id;

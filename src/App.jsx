@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-
-// Importujemy nasz globalny koszyk (upewnij się, że ścieżka do pliku CartContext jest poprawna)
-import { CartProvider } from './CartContext'; 
+import { CartProvider } from './CartContext';
+import { AuthProvider } from './AuthContext';
+import AuthModal from './AuthModal';
 
 import Navbar from './Navbar';
 import Home from './Home';
@@ -11,12 +11,10 @@ import About from './About';
 import Reservation from './Reservation';
 import Kontakt from './Kontakt';
 
-// 1. Wewnętrzny komponent – ma dostęp do useLocation(), bo znajduje się wewnątrz BrowserRouter
 function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
-    // Dynamiczne przełączanie klasy 'subpage' na elemencie <body>
     if (location.pathname !== '/') {
       document.body.classList.add('subpage');
     } else {
@@ -25,32 +23,34 @@ function AppContent() {
   }, [location]);
 
   return (
-      <>
-        {/* Pasek nawigacji dla wszystkich podstron poza osią główną / */}
-        {location.pathname !== '/' && (
-            <div className="shell" style={{ marginTop: '20px' }}>
-              <Navbar />
-            </div>
-        )}
+    <>
+      {location.pathname !== '/' && (
+        <div className="shell" style={{ marginTop: '20px' }}>
+          <Navbar />
+        </div>
+      )}
 
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/reservation" element={<Reservation />} />
-          <Route path="/kontakt" element={<Kontakt />} />
-        </Routes>
-      </>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/menu" element={<Menu />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/reservation" element={<Reservation />} />
+        <Route path="/kontakt" element={<Kontakt />} />
+      </Routes>
+
+      <AuthModal />
+    </>
   );
 }
 
-// 2. Główny komponent – opakowuje całość w BrowserRouter oraz CartProvider
 export default function App() {
   return (
+    <AuthProvider>
       <CartProvider>
         <BrowserRouter>
           <AppContent />
         </BrowserRouter>
       </CartProvider>
+    </AuthProvider>
   );
 }

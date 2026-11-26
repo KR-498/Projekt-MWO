@@ -1,9 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { useCart } from './CartContext'; // Upewnij się, że ścieżka jest poprawna
-import CartSidebar from './CartSidebar'; // Komponent, który stworzymy za chwilę
+import { useCart } from './CartContext';
+import { useAuth } from './AuthContext';
+import CartSidebar from './CartSidebar';
 
 export default function Navbar() {
     const { cartItems, setIsCartOpen } = useCart();
+    const { user, isAuthenticated, isAdmin, setIsAuthModalOpen, logout } = useAuth();
 
     const totalItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -18,7 +20,7 @@ export default function Navbar() {
                     </div>
                 </button>
             </div>
-            <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <nav className="nav" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                 <div className="nav-links">
                     <NavLink to="/" end className={({ isActive }) => isActive ? "nav-reserve" : ""}>Główna</NavLink>
                     <NavLink to="/menu" className={({ isActive }) => isActive ? "nav-reserve" : ""}>Menu</NavLink>
@@ -27,7 +29,33 @@ export default function Navbar() {
                     <NavLink to="/kontakt" className={({ isActive }) => isActive ? "nav-reserve" : ""}>Kontakt</NavLink>
                 </div>
 
-                {/* PRZYCISK OTWIERAJĄCY PANEL */}
+                {/* SEKCJA KONTA UŻYTKOWNIKA */}
+                {isAuthenticated ? (
+                    <div className="nav-user">
+                        <span className="nav-user__greeting">
+                            Cześć, <strong>{user.name.split(' ').at(0)}</strong>
+                            {isAdmin && <span className="nav-user__badge">Admin</span>}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={logout}
+                            className="nav-user__logout"
+                        >
+                            Wyloguj
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="nav-login-btn"
+                    >
+                        Zaloguj
+                    </button>
+                )}
+
+
+                {/* PRZYCISK OTWIERAJĄCY PANEL KOSZYKA */}
                 <button 
                     className="navbar-cart-btn" 
                     onClick={() => setIsCartOpen(true)}
@@ -42,7 +70,6 @@ export default function Navbar() {
                 </button>
             </nav>
 
-            {/* KOMPONENT WYSOWANEGO KOSZYKA */}
             <CartSidebar />
         </header>
     );
