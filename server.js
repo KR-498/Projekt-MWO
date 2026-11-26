@@ -8,7 +8,6 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "domyslny_sekretny_klucz_dev";
 
-
 dotenv.config();
 
 const app = express();
@@ -68,34 +67,33 @@ app.get("/api/opening-hours", async (req, res) => {
   }
 });
 // Pobieranie godzin pracy kuchni dla konkretnej daty (podpowiedź w koszyku)
-app.get('/api/kitchen-hours', async (req, res) => {
-    const { date } = req.query;
-    if (!date) {
-        return res.status(400).json({ error: 'Brak parametru date.' });
+app.get("/api/kitchen-hours", async (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: "Brak parametru date." });
+  }
+
+  try {
+    const hours = await getOpeningHours(date);
+    if (!hours) {
+      return res.json({ isClosed: true });
     }
 
-    try {
-        const hours = await getOpeningHours(date);
-        if (!hours) {
-            return res.json({ isClosed: true });
-        }
+    // Wyliczamy maksymalną godzinę przyjmowania zamówień (30 min przed zamknięciem)
+    const closeMinutes = timeToMinutes(hours.close) - 30;
+    const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, "0")}:${String(closeMinutes % 60).padStart(2, "0")}`;
 
-        // Wyliczamy maksymalną godzinę przyjmowania zamówień (30 min przed zamknięciem)
-        const closeMinutes = timeToMinutes(hours.close) - 30;
-        const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, '0')}:${String(closeMinutes % 60).padStart(2, '0')}`;
-
-        res.json({
-            isClosed: false,
-            open: hours.open,
-            close: hours.close,
-            lastOrder: lastOrderHour
-        });
-    } catch (err) {
-        console.error('Błąd pobierania godzin otwarcia:', err.message);
-        res.status(500).json({ error: 'Błąd serwera' });
-    }
+    res.json({
+      isClosed: false,
+      open: hours.open,
+      close: hours.close,
+      lastOrder: lastOrderHour,
+    });
+  } catch (err) {
+    console.error("Błąd pobierania godzin otwarcia:", err.message);
+    res.status(500).json({ error: "Błąd serwera" });
+  }
 });
-
 
 // Middleware: opcjonalne rozpoznanie zalogowanego użytkownika (nie blokuje gości)
 function optionalAuth(req, res, next) {
@@ -123,17 +121,135 @@ function requireAuth(req, res, next) {
     req.user = jwt.verify(authHeader.split(" ").at(1), JWT_SECRET);
     next();
   } catch {
-    return res.status(401).json({ error: "Sesja wygasła lub nieprawidłowy token." });
+    return res
+      .status(401)
+      .json({ error: "Sesja wygasła lub nieprawidłowy token." });
   }
 }
 
-// Middleware: wymaga roli administratora (na przyszłość do edycji godzin otwarcia)
+// Middleware: wymaga roli administratora (konto admin@admin.com)
 function requireAdmin(req, res, next) {
-  if (!req.user || req.user.role !== "admin") {
+  if (
+    !req.user ||
+    req.user.role !== "admin" ||
+    String(req.user.email || "").toLowerCase() !== "admin@admin.com"
+  ) {
     return res.status(403).json({ error: "Brak uprawnień administratora." });
   }
   next();
 }
+
+const ISO_DAYS_META = [
+  { iso: 1, label: "Poniedziałek", rangeEnd: "poniedziałek" },
+  { iso: 2, label: "Wtorek", rangeEnd: "wtorek" },
+  { iso: 3, label: "Środa", rangeEnd: "środa" },
+  { iso: 4, label: "Czwartek", rangeEnd: "czwartek" },
+  { iso: 5, label: "Piątek", rangeEnd: "piątek" },
+  { iso: 6, label: "Sobota", rangeEnd: "sobota" },
+  { iso: 7, label: "Niedziela", rangeEnd: "niedziela" },
+];
+
+// Aktualizacja godzin otwarcia w bazie danych (tylko admin@admin.com)
+app.put("/api/opening-hours", requireAuth, requireAdmin, async (req, res) => {
+  const { schedule } = req.body;
+  if (!Array.isArray(schedule) || schedule.length !== 7) {
+    return res.status(400).json({
+      error: "Nieprawidłowy format harmonogramu tygodnia.",
+    });
+  }
+
+  const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+  const normalizedDays = [];
+
+  for (const meta of ISO_DAYS_META) {
+    const entry = schedule.find((d) => Number(d.isoDay) === meta.iso);
+    if (!entry || !entry.isOpen) {
+      normalizedDays.push({
+        ...meta,
+        isOpen: false,
+        openTime: null,
+        closeTime: null,
+      });
+      continue;
+    }
+
+    const openTime = String(entry.openTime || "").slice(0, 5);
+    const closeTime = String(entry.closeTime || "").slice(0, 5);
+
+    if (!timeRegex.test(openTime) || !timeRegex.test(closeTime)) {
+      return res.status(400).json({
+        error: `Podaj poprawne godziny w formacie HH:MM dla dnia: ${meta.label}.`,
+      });
+    }
+
+    if (timeToMinutes(openTime) >= timeToMinutes(closeTime)) {
+      return res.status(400).json({
+        error: `Godzina zamknięcia musi być późniejsza niż otwarcia (${meta.label}).`,
+      });
+    }
+
+    normalizedDays.push({ ...meta, isOpen: true, openTime, closeTime });
+  }
+
+  const groupedRows = [];
+  for (const day of normalizedDays) {
+    if (!day.isOpen) continue;
+    const prev = groupedRows.at(-1);
+    if (
+      prev &&
+      prev.endIso === day.iso - 1 &&
+      prev.openTime === day.openTime &&
+      prev.closeTime === day.closeTime
+    ) {
+      prev.endIso = day.iso;
+      prev.endLabel = day.rangeEnd;
+    } else {
+      groupedRows.push({
+        startIso: day.iso,
+        endIso: day.iso,
+        startLabel: day.label,
+        endLabel: day.rangeEnd,
+        openTime: day.openTime,
+        closeTime: day.closeTime,
+      });
+    }
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("DELETE FROM opening_hours");
+
+    const insertedRows = [];
+    for (let i = 0; i < groupedRows.length; i++) {
+      const g = groupedRows[i];
+      const daysLabel =
+        g.startIso === g.endIso ? g.startLabel : `${g.startLabel}–${g.endLabel}`;
+      const insertRes = await client.query(
+        `INSERT INTO opening_hours (days_label, open_time, close_time, display_order)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, days_label, open_time, close_time, display_order`,
+        [daysLabel, g.openTime, g.closeTime, i + 1],
+      );
+      insertedRows.push(insertRes.rows[0]);
+    }
+
+    await client.query("COMMIT");
+    res.json({
+      success: true,
+      message: "Godziny otwarcia zostały zaktualizowane w bazie danych.",
+      rows: insertedRows,
+    });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Błąd aktualizacji godzin otwarcia:", err.message);
+    res.status(500).json({
+      error: "Błąd serwera podczas zapisywania godzin otwarcia.",
+    });
+  } finally {
+    client.release();
+  }
+});
 
 // REJESTRACJA NOWEGO UŻYTKOWNIKA
 app.post("/api/auth/register", async (req, res) => {
@@ -147,9 +263,13 @@ app.post("/api/auth/register", async (req, res) => {
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [normalizedEmail]);
+    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [
+      normalizedEmail,
+    ]);
     if (existing.rows.length > 0) {
-      return res.status(409).json({ error: "Konto z tym adresem e-mail już istnieje." });
+      return res
+        .status(409)
+        .json({ error: "Konto z tym adresem e-mail już istnieje." });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -157,13 +277,17 @@ app.post("/api/auth/register", async (req, res) => {
       `INSERT INTO users (name, email, phone, password_hash, role)
        VALUES ($1, $2, $3, $4, 'customer')
        RETURNING id, name, email, phone, role, default_street, default_city`,
-      [name.trim(), normalizedEmail, phone ? phone.trim() : null, passwordHash]
+      [name.trim(), normalizedEmail, phone ? phone.trim() : null, passwordHash],
     );
 
     const user = result.rows.at(0);
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
 
     res.status(201).json({ token, user });
   } catch (err) {
@@ -182,14 +306,19 @@ app.post("/api/auth/login", async (req, res) => {
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [normalizedEmail]);
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [
+      normalizedEmail,
+    ]);
     const userRow = result.rows.at(0);
 
     if (!userRow) {
       return res.status(401).json({ error: "Nieprawidłowy e-mail lub hasło." });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, userRow.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      userRow.password_hash,
+    );
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Nieprawidłowy e-mail lub hasło." });
     }
@@ -204,9 +333,13 @@ app.post("/api/auth/login", async (req, res) => {
       default_city: userRow.default_city,
     };
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
 
     res.json({ token, user });
   } catch (err) {
@@ -220,10 +353,11 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT id, name, email, phone, role, default_street, default_city FROM users WHERE id = $1",
-      [req.user.id]
+      [req.user.id],
     );
     const user = result.rows.at(0);
-    if (!user) return res.status(404).json({ error: "Użytkownik nie istnieje." });
+    if (!user)
+      return res.status(404).json({ error: "Użytkownik nie istnieje." });
     res.json({ user });
   } catch (err) {
     res.status(500).json({ error: "Błąd serwera." });
@@ -233,97 +367,111 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
 // Przyjmowanie zamówień i zapis w bazie danych
 // Przyjmowanie zamówień i zapis w bazie danych (z planowaniem dostawy i walidacją godzin)
 // Przyjmowanie zamówień i zapis w bazie danych
-app.post('/api/orders', optionalAuth, async (req, res) => {
-    console.log('--- NOWE ZAMÓWIENIE Z FRONTU ---');
-    console.log('ODEBRANE BODY:', JSON.stringify(req.body, null, 2));
-    const {
-        items,
-        customerName,
-        customerEmail,
-        customerPhone,
-        deliveryType,
-        deliveryStreet,
-        deliveryCity,
-        deliveryNotes,
-        scheduledDate,
-        scheduledTime
-    } = req.body;
+app.post("/api/orders", optionalAuth, async (req, res) => {
+  console.log("--- NOWE ZAMÓWIENIE Z FRONTU ---");
+  console.log("ODEBRANE BODY:", JSON.stringify(req.body, null, 2));
+  const {
+    items,
+    customerName,
+    customerEmail,
+    customerPhone,
+    deliveryType,
+    deliveryStreet,
+    deliveryCity,
+    deliveryNotes,
+    scheduledDate,
+    scheduledTime,
+  } = req.body;
 
-    // 1. Walidacja koszyka i podstawowych danych
-    if (!items || items.length === 0) {
-        return res.status(400).json({ error: 'Koszyk nie może być pusty.' });
-    }
-    if (!customerName || !customerPhone || !scheduledDate || !scheduledTime) {
-        return res.status(400).json({ error: 'Uzupełnij imię, telefon, datę oraz godzinę.' });
-    }
-    if (deliveryType === 'delivery' && (!deliveryStreet?.trim() || !deliveryCity?.trim())) {
-        return res.status(400).json({ error: 'Podaj pełny adres dostawy (ulica i miasto).' });
+  // 1. Walidacja koszyka i podstawowych danych
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: "Koszyk nie może być pusty." });
+  }
+  if (!customerName || !customerPhone || !scheduledDate || !scheduledTime) {
+    return res
+      .status(400)
+      .json({ error: "Uzupełnij imię, telefon, datę oraz godzinę." });
+  }
+  if (
+    deliveryType === "delivery" &&
+    (!deliveryStreet?.trim() || !deliveryCity?.trim())
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Podaj pełny adres dostawy (ulica i miasto)." });
+  }
+
+  // 2. Walidacja przeszłości oraz 45-minutowego bufora na przygotowanie
+  if (isDateTimeInPast(scheduledDate, scheduledTime)) {
+    return res.status(400).json({ error: "Wybrany termin już minął." });
+  }
+
+  const [year, month, day] = String(scheduledDate).split("-").map(Number);
+  const [hours, minutes] = String(scheduledTime).split(":").map(Number);
+  const targetDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+  const minPreparationTime = new Date(Date.now() + 45 * 60 * 1000);
+
+  if (targetDateTime < minPreparationTime) {
+    return res.status(400).json({
+      error:
+        "Potrzebujemy minimum 45 minut na przygotowanie zamówienia. Wybierz późniejszą godzinę.",
+    });
+  }
+
+  try {
+    // 3. Walidacja godzin otwarcia (zgodnie z getOpeningHours w server.js: zwraca { open, close } lub null)
+    const openingHours = await getOpeningHours(scheduledDate);
+
+    if (!openingHours) {
+      return res.status(400).json({
+        error:
+          "W wybranym dniu restauracja jest zamknięta. Wybierz inny termin.",
+      });
     }
 
-    // 2. Walidacja przeszłości oraz 45-minutowego bufora na przygotowanie
-    if (isDateTimeInPast(scheduledDate, scheduledTime)) {
-        return res.status(400).json({ error: 'Wybrany termin już minął.' });
+    const requestedMinutes = timeToMinutes(scheduledTime);
+    const openMinutes = timeToMinutes(openingHours.open);
+    const closeMinutes = timeToMinutes(openingHours.close) - 30; // Kuchnia zamyka się 30 min przed końcem
+
+    if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
+      const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, "0")}:${String(closeMinutes % 60).padStart(2, "0")}`;
+      return res.status(400).json({
+        error: `W wybranym dniu zamówienia realizujemy w godzinach ${openingHours.open}–${lastOrderHour}.`,
+      });
     }
 
-    const [year, month, day] = String(scheduledDate).split('-').map(Number);
-    const [hours, minutes] = String(scheduledTime).split(':').map(Number);
-    const targetDateTime = new Date(year, month - 1, day, hours, minutes, 0);
-    const minPreparationTime = new Date(Date.now() + 45 * 60 * 1000);
+    // 4. Bezpieczne przeliczenie kwoty i kosztu dostawy na backendzie
+    const parseSafeNumber = (val) => {
+      if (typeof val === "number" && !Number.isNaN(val)) return val;
+      if (typeof val === "string") {
+        const cleaned = val.replace(",", ".").replace(/[^\d.-]/g, "");
+        const parsed = parseFloat(cleaned);
+        return Number.isNaN(parsed) ? 0 : parsed;
+      }
+      return 0;
+    };
 
-    if (targetDateTime < minPreparationTime) {
-        return res.status(400).json({
-            error: 'Potrzebujemy minimum 45 minut na przygotowanie zamówienia. Wybierz późniejszą godzinę.'
-        });
-    }
+    const itemsSubtotal = items.reduce((sum, item) => {
+      const unitPrice = parseSafeNumber(
+        item.price ??
+          item.unit_price ??
+          item.total_price / (item.quantity || 1),
+      );
+      const qty = parseSafeNumber(item.quantity) || 1;
+      return sum + unitPrice * qty;
+    }, 0);
+
+    const deliveryFee =
+      deliveryType === "delivery" && itemsSubtotal < 150 ? 15.0 : 0.0;
+    const finalTotalPrice = Number((itemsSubtotal + deliveryFee).toFixed(2));
+
+    // 5. Zapis w transakcji SQL
+    const client = await pool.connect();
 
     try {
-        // 3. Walidacja godzin otwarcia (zgodnie z getOpeningHours w server.js: zwraca { open, close } lub null)
-        const openingHours = await getOpeningHours(scheduledDate);
+      await client.query("BEGIN");
 
-        if (!openingHours) {
-            return res.status(400).json({
-                error: 'W wybranym dniu restauracja jest zamknięta. Wybierz inny termin.'
-            });
-        }
-
-        const requestedMinutes = timeToMinutes(scheduledTime);
-        const openMinutes = timeToMinutes(openingHours.open);
-        const closeMinutes = timeToMinutes(openingHours.close) - 30; // Kuchnia zamyka się 30 min przed końcem
-
-        if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
-            const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, '0')}:${String(closeMinutes % 60).padStart(2, '0')}`;
-            return res.status(400).json({
-                error: `W wybranym dniu zamówienia realizujemy w godzinach ${openingHours.open}–${lastOrderHour}.`
-            });
-        }
-
-        // 4. Bezpieczne przeliczenie kwoty i kosztu dostawy na backendzie
-        const parseSafeNumber = (val) => {
-            if (typeof val === 'number' && !Number.isNaN(val)) return val;
-            if (typeof val === 'string') {
-                const cleaned = val.replace(',', '.').replace(/[^\d.-]/g, '');
-                const parsed = parseFloat(cleaned);
-                return Number.isNaN(parsed) ? 0 : parsed;
-            }
-            return 0;
-        };
-
-        const itemsSubtotal = items.reduce((sum, item) => {
-            const unitPrice = parseSafeNumber(item.price ?? item.unit_price ?? (item.total_price / (item.quantity || 1)));
-            const qty = parseSafeNumber(item.quantity) || 1;
-            return sum + (unitPrice * qty);
-        }, 0);
-
-        const deliveryFee = (deliveryType === 'delivery' && itemsSubtotal < 150) ? 15.00 : 0.00;
-        const finalTotalPrice = Number((itemsSubtotal + deliveryFee).toFixed(2));
-
-        // 5. Zapis w transakcji SQL
-        const client = await pool.connect();
-
-        try {
-            await client.query('BEGIN');
-
-            const orderQuery = `
+      const orderQuery = `
                 INSERT INTO orders (
                     total_price, delivery_fee, customer_name, customer_email, customer_phone,
                     delivery_type, delivery_street, delivery_city, delivery_notes,
@@ -333,85 +481,89 @@ app.post('/api/orders', optionalAuth, async (req, res) => {
                 RETURNING id;
             `;
 
-            const orderValues = [
-                finalTotalPrice,
-                deliveryFee,
-                customerName.trim(),
-                customerEmail ? customerEmail.trim() : null,
-                customerPhone.trim(),
-                deliveryType,
-                deliveryType === 'delivery' ? deliveryStreet.trim() : null,
-                deliveryType === 'delivery' ? deliveryCity.trim() : null,
-                deliveryType === 'delivery' && deliveryNotes ? deliveryNotes.trim() : null,
-                scheduledDate,
-                scheduledTime,
-                req.user ? req.user.id : null
-            ];
+      const orderValues = [
+        finalTotalPrice,
+        deliveryFee,
+        customerName.trim(),
+        customerEmail ? customerEmail.trim() : null,
+        customerPhone.trim(),
+        deliveryType,
+        deliveryType === "delivery" ? deliveryStreet.trim() : null,
+        deliveryType === "delivery" ? deliveryCity.trim() : null,
+        deliveryType === "delivery" && deliveryNotes
+          ? deliveryNotes.trim()
+          : null,
+        scheduledDate,
+        scheduledTime,
+        req.user ? req.user.id : null,
+      ];
 
+      const orderResult = await client.query(orderQuery, orderValues);
+      const orderId = orderResult.rows[0].id;
 
-            const orderResult = await client.query(orderQuery, orderValues);
-            const orderId = orderResult.rows[0].id;
-
-            const itemQuery = `
+      const itemQuery = `
                 INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
                 VALUES ($1, $2, $3, $4, $5, $6);
             `;
 
-            for (const item of items) {
-                await client.query(itemQuery, [
-                    orderId,
-                    item.dish_id || item.id,
-                    item.dish_name || item.name,
-                    item.quantity,
-                    parseSafeNumber(item.price),
-                    item.special_notes || item.notes || null
-                ]);
-            }
+      for (const item of items) {
+        await client.query(itemQuery, [
+          orderId,
+          item.dish_id || item.id,
+          item.dish_name || item.name,
+          item.quantity,
+          parseSafeNumber(item.price),
+          item.special_notes || item.notes || null,
+        ]);
+      }
 
-            await client.query('COMMIT');
-            if (customerEmail && customerEmail.trim()) {
-                try {
-                    await sendOrderEmail({
-                        orderId,
-                        customerName: customerName.trim(),
-                        customerEmail: customerEmail.trim(),
-                        customerPhone: customerPhone.trim(),
-                        deliveryType,
-                        deliveryStreet: deliveryStreet ? deliveryStreet.trim() : null,
-                        deliveryCity: deliveryCity ? deliveryCity.trim() : null,
-                        deliveryNotes: deliveryNotes ? deliveryNotes.trim() : null,
-                        deliveryFee,
-                        scheduledDate,
-                        scheduledTime,
-                        items,
-                        finalTotalPrice,
-                    });
-                    console.log(`Potwierdzenie zamówienia wysłane na: ${customerEmail.trim()}`);
-                } catch (emailErr) {
-                    console.error("Błąd podczas wysyłania e-maila z zamówieniem:", emailErr.message);
-                }
-            }
-            res.status(201).json({
-                success: true,
-                message: 'Zamówienie zostało pomyślnie zapisane!',
-                orderId: orderId,
-                finalTotal: finalTotalPrice
-            });
-
-        } catch (dbErr) {
-            await client.query('ROLLBACK');
-            throw dbErr;
-        } finally {
-            client.release();
+      await client.query("COMMIT");
+      if (customerEmail && customerEmail.trim()) {
+        try {
+          await sendOrderEmail({
+            orderId,
+            customerName: customerName.trim(),
+            customerEmail: customerEmail.trim(),
+            customerPhone: customerPhone.trim(),
+            deliveryType,
+            deliveryStreet: deliveryStreet ? deliveryStreet.trim() : null,
+            deliveryCity: deliveryCity ? deliveryCity.trim() : null,
+            deliveryNotes: deliveryNotes ? deliveryNotes.trim() : null,
+            deliveryFee,
+            scheduledDate,
+            scheduledTime,
+            items,
+            finalTotalPrice,
+          });
+          console.log(
+            `Potwierdzenie zamówienia wysłane na: ${customerEmail.trim()}`,
+          );
+        } catch (emailErr) {
+          console.error(
+            "Błąd podczas wysyłania e-maila z zamówieniem:",
+            emailErr.message,
+          );
         }
-
-    } catch (err) {
-        console.error('Błąd podczas zapisywania zamówienia:', err.message);
-        res.status(500).json({ error: 'Wystąpił błąd serwera podczas składania zamówienia.' });
+      }
+      res.status(201).json({
+        success: true,
+        message: "Zamówienie zostało pomyślnie zapisane!",
+        orderId: orderId,
+        finalTotal: finalTotalPrice,
+      });
+    } catch (dbErr) {
+      await client.query("ROLLBACK");
+      throw dbErr;
+    } finally {
+      client.release();
     }
+  } catch (err) {
+    console.error("Błąd podczas zapisywania zamówienia:", err.message);
+    res
+      .status(500)
+      .json({ error: "Wystąpił błąd serwera podczas składania zamówienia." });
+  }
 });
-
-
 
 // Pomocnicza funkcja zamieniająca godzinę "HH:MM" lub "HH:MM:SS" na minuty od północy
 function timeToMinutes(timeStr) {
@@ -549,12 +701,14 @@ async function sendOrderEmail({
   finalTotalPrice,
 }) {
   const configResult = await pool.query(
-    "SELECT email_user, email_pass, email_from FROM email_config LIMIT 1"
+    "SELECT email_user, email_pass, email_from FROM email_config LIMIT 1",
   );
   const config = configResult.rows[0];
 
   if (!config || !config.email_user || !config.email_pass) {
-    console.warn("Brak konfiguracji e-mail w tabeli email_config – pominięto wysyłkę maila");
+    console.warn(
+      "Brak konfiguracji e-mail w tabeli email_config – pominięto wysyłkę maila",
+    );
     return;
   }
 
@@ -574,8 +728,10 @@ async function sendOrderEmail({
         `<li><strong>${item.dish_name || item.name}</strong> × ${item.quantity} — ${(
           Number(item.price) * Number(item.quantity)
         ).toFixed(2)} zł${
-          item.special_notes || item.notes ? ` <em>(${item.special_notes || item.notes})</em>` : ""
-        }</li>`
+          item.special_notes || item.notes
+            ? ` <em>(${item.special_notes || item.notes})</em>`
+            : ""
+        }</li>`,
     )
     .join("");
 

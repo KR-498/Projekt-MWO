@@ -62,10 +62,16 @@ export default function CartSidebar() {
     useEffect(() => {
         if (!scheduledDate) return;
 
-        fetch(`http://localhost:4000/api/kitchen-hours?date=${scheduledDate}`)
-            .then((res) => res.json())
-            .then((data) => setHoursInfo(data))
-            .catch(() => setHoursInfo(null));
+        const fetchKitchenHours = () => {
+            fetch(`http://localhost:4000/api/kitchen-hours?date=${scheduledDate}`)
+                .then((res) => res.json())
+                .then((data) => setHoursInfo(data))
+                .catch(() => setHoursInfo(null));
+        };
+
+        fetchKitchenHours();
+        window.addEventListener('opening-hours-updated', fetchKitchenHours);
+        return () => window.removeEventListener('opening-hours-updated', fetchKitchenHours);
     }, [scheduledDate]);
 
 

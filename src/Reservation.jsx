@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getOpeningHoursForDate } from "./openingHoursUtils";
 
 function getTodayDateString() {
   const now = new Date();
@@ -13,58 +14,6 @@ function isDateTimeInPast(dateStr, timeStr) {
   const [hours, minutes] = String(timeStr || "00:00").split(":").map(Number);
   const target = new Date(year, month - 1, day, hours || 0, minutes || 0, 0);
   return target < new Date();
-}
-
-function parseIsoDayName(str) {
-  const s = String(str || "")
-    .trim()
-    .toLowerCase();
-  if (s.startsWith("pon")) return 1;
-  if (s.startsWith("wt")) return 2;
-  if (s.startsWith("śr") || s.startsWith("sr")) return 3;
-  if (s.startsWith("czw")) return 4;
-  if (s.startsWith("pi") || s.startsWith("pt")) return 5;
-  if (s.startsWith("sob") || s.startsWith("sb")) return 6;
-  if (s.startsWith("nie") || s.startsWith("nd")) return 7;
-  return null;
-}
-
-function doesLabelMatchDay(daysLabel, isoDay) {
-  const parts = String(daysLabel || "").split(/\s*(?:[-–—]|\bdo\b)\s*/i);
-  if (parts.length >= 2) {
-    const start = parseIsoDayName(parts[0]);
-    const end = parseIsoDayName(parts[1]);
-    if (start !== null && end !== null) {
-      return start <= end
-        ? isoDay >= start && isoDay <= end
-        : isoDay >= start || isoDay <= end;
-    }
-  }
-  const single = parseIsoDayName(parts[0]);
-  return single !== null && isoDay === single;
-}
-
-function getOpeningHoursForDate(dateStr, hoursRows) {
-  if (!dateStr || !hoursRows || hoursRows.length === 0) {
-    return { open: null, close: null, closed: false };
-  }
-  const [year, month, day] = String(dateStr).split("-").map(Number);
-  const jsDay = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
-  const isoDay = jsDay === 0 ? 7 : jsDay;
-
-  for (const row of hoursRows) {
-    if (doesLabelMatchDay(row.days_label, isoDay)) {
-      if (!row.open_time || !row.close_time) {
-        return { open: null, close: null, closed: true };
-      }
-      return {
-        open: String(row.open_time).slice(0, 5),
-        close: String(row.close_time).slice(0, 5),
-        closed: false,
-      };
-    }
-  }
-  return { open: null, close: null, closed: true };
 }
 
 function timeToMinutes(timeStr) {
@@ -83,22 +32,36 @@ export default function Reservation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [openingHoursRows, setOpeningHoursRows] = useState([]);
+  const [hoursLoaded, setHoursLoaded] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/opening-hours")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setOpeningHoursRows(data);
-        }
-      })
-      .catch((err) => {
-        console.error("Błąd pobierania godzin otwarcia:", err);
-      });
+    const fetchHours = () => {
+      fetch("http://localhost:4000/api/opening-hours")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setOpeningHoursRows(data);
+          }
+        })
+        .catch((err) => {
+          console.error("Błąd pobierania godzin otwarcia:", err);
+        })
+        .finally(() => {
+          setHoursLoaded(true);
+        });
+    };
+
+    fetchHours();
+    window.addEventListener("opening-hours-updated", fetchHours);
+    return () => window.removeEventListener("opening-hours-updated", fetchHours);
   }, []);
 
   const todayStr = getTodayDateString();
-  const openingHours = getOpeningHoursForDate(selectedDate, openingHoursRows);
+  const openingHours = getOpeningHoursForDate(
+    selectedDate,
+    openingHoursRows,
+    hoursLoaded,
+  );
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;
@@ -109,7 +72,11 @@ export default function Reservation() {
       return;
     }
 
-    const hours = getOpeningHoursForDate(newDate, openingHoursRows);
+    const hours = getOpeningHoursForDate(
+      newDate,
+      openingHoursRows,
+      hoursLoaded,
+    );
     if (hours.closed) {
       setError(
         "W wybranym dniu restauracja jest zamknięta. Prosimy wybrać inny dzień.",
@@ -154,8 +121,12 @@ export default function Reservation() {
       return;
     }
 
-    if (openingHoursRows.length > 0) {
-      const hours = getOpeningHoursForDate(dateVal, openingHoursRows);
+    if (hoursLoaded) {
+      const hours = getOpeningHoursForDate(
+        dateVal,
+        openingHoursRows,
+        hoursLoaded,
+      );
       if (hours.closed) {
         setError("W wybranym dniu restauracja jest zamknięta.");
         return;
