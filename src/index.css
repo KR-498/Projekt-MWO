@@ -22,6 +22,7 @@
   margin: 0;
   padding: 0;
 }
+
 .shell {
   width: min(1180px, calc(100% - 64px));
   margin-inline: auto;
@@ -64,7 +65,7 @@ h1, h2, h3 {
 h2 {
   font-size: clamp(2rem, 5vw, 3.4rem);
   line-height: 1.12;
-  letter-spacing: -.01em;
+  letter-spacing: -0.01em;
 }
 
 .center { text-align: center; }
@@ -73,14 +74,14 @@ h2 {
 .section { padding: clamp(3.5rem, 9vw, 7rem) 0; }
 
 .eyebrow {
-  font-size: .68rem;
-  letter-spacing: .2em;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--burgundy);
   margin: 0 0 1rem;
   font-weight: 500;
 }
-.eyebrow--light { color: rgba(255, 255, 255, .75); }
+.eyebrow--light { color: rgba(255, 255, 255, 0.75); }
 .eyebrow--gold { color: var(--gold); }
 .eyebrow--center { text-align: center; }
 
@@ -94,38 +95,38 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .8rem;
-  padding: .95rem 1.6rem;
-  font: 500 .72rem var(--sans);
-  letter-spacing: .16em;
+  gap: 0.8rem;
+  padding: 0.95rem 1.6rem;
+  font: 500 0.72rem var(--sans);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
 }
-.btn--sm { padding: .55rem 1rem; font-size: .7rem; letter-spacing: .08em; text-transform: none; }
-.btn--ghost { border-color: rgba(255, 255, 255, .7); color: #fff; background: transparent; }
+.btn--sm { padding: 0.55rem 1rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: none; }
+.btn--ghost { border-color: rgba(255, 255, 255, 0.7); color: #fff; background: transparent; }
 .btn--ghost:hover, .btn--ghost:focus-visible { background: #fff; color: var(--ink); }
 .btn--dark { background: var(--ink); color: #fff; width: 100%; }
 .btn--dark:hover, .btn--dark:focus-visible {
   background: var(--burgundy);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, .18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
-.btn--dark span { transition: transform .3s; }
+.btn--dark span { transition: transform 0.3s; }
 .btn--dark:hover span { transform: translateX(4px); }
 
 .text-link {
   display: inline-block;
-  font-size: .72rem;
-  letter-spacing: .14em;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   border-bottom: 1px solid var(--burgundy);
   color: var(--burgundy);
-  padding-bottom: .2rem;
-  transition: all .3s;
+  padding-bottom: 0.2rem;
+  transition: all 0.3s;
 }
-.text-link:hover { opacity: .7; }
+.text-link:hover { opacity: 0.7; }
 .text-link--light { color: #fff; border-color: var(--gold); }
 
 /* --- HERO SECTION I NAWIGACJA (STRONA GŁÓWNA) --- */
@@ -137,8 +138,8 @@ h2 {
   margin: 0 !important;
   color: white;
   background:
-    linear-gradient(90deg, rgba(15, 8, 4, 0.82) 0%, rgba(15, 8, 4, 0.55) 55%, rgba(15, 8, 4, 0.35) 100%),
-    url("res/background-img.avif") center 54% / cover;
+          linear-gradient(90deg, rgba(15, 8, 4, 0.82) 0%, rgba(15, 8, 4, 0.55) 55%, rgba(15, 8, 4, 0.35) 100%),
+          url("res/background-img.avif") center 54% / cover;
   display: flex;
   flex-direction: column;
 }
@@ -151,13 +152,16 @@ h2 {
   pointer-events: none;
 }
 
-/* --- INTEGRACJA MENU Z nav.js --- */
+/* --- INTEGRACJA MENU Z NAVBAR --- */
 #hednav {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   margin-top: 20px;
+  min-height: 124px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .nav {
@@ -180,76 +184,6 @@ h2 {
   gap: 36px;
 }
 
-/* Domyślne style dla strony głównej (białe menu na ciemnym tle) */
-.nav-links a {
-  color: white;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  transition: all 180ms ease;
-  border: 1px solid transparent;
-  padding: 13px 20px;
-}
-.nav-links a:hover { color: #e8c7a7; }
-.nav-links a.nav-reserve { border: 1px solid rgba(255, 255, 255, 0.7); }
-.nav-links a.nav-reserve:hover { background: white; color: var(--ink); }
-
-.brand {
-  background: none;
-  border: 0;
-  display: flex;
-  color: white;
-  align-items: center;
-  gap: 12px;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-}
-
-/* --- AUTOMATYCZNA ZMIANA KOLORU MENU DLA PODSTRON (np. Rezerwacji) --- */
-/* --- AUTOMATYCZNA ZMIANA KOLORU I POZYCJI MENU DLA PODSTRON --- */
-.subpage #hednav {
-  margin-bottom: 60px;       /* Piękne odsuniecie sekcji menu od tytułu "Dołącz do nas" */
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;   /* Gwarancja wyrównania do lewej, dokładnie tak jak na głównej */
-}
-
-.subpage .nav {
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  max-width: 560px;          /* Trzyma tę samą szerokość linii co na stronie głównej */
-  width: 100%;
-}
-
-.subpage .brand {
-  color: var(--ink);
-}
-.subpage .brand-mark {
-  border-color: var(--line);
-}
-.subpage .nav-links a {
-  color: var(--ink);
-}
-.subpage .nav-links a:hover {
-  color: var(--burgundy);
-}
-.subpage .nav-links a.nav-reserve {
-  border-color: var(--burgundy);
-}
-.subpage .nav-links a.nav-reserve:hover {
-  background: var(--burgundy);
-  color: white;
-}
-
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 36px;
-}
-
 .nav-links a {
   color: white;
   font-size: 13px;
@@ -264,7 +198,8 @@ h2 {
 .nav-links a.nav-reserve:hover { background: white; color: var(--ink); }
 
 .site-brand {
-  height: 58px;
+  height: auto;
+  min-height: 104px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -278,7 +213,7 @@ h2 {
   display: flex;
   color: white;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 0;
   cursor: pointer;
   text-align: left;
@@ -302,13 +237,60 @@ h2 {
 .brand strong { font-size: 14px; }
 .brand small { font-size: 9px; margin-top: 5px; opacity: 0.75; }
 
+.brand-logo {
+  width: 350px;
+  height: 280px;
+  max-width: none;
+  margin-top: 12px;
+  object-fit: cover;
+  transform: none;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* --- AUTOMATYCZNA ZMIANA KOLORU I POZYCJI MENU DLA PODSTRON --- */
+.subpage #hednav {
+  margin-bottom: 60px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.subpage .nav {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  max-width: 560px;
+  width: 100%;
+}
+
+.subpage .brand {
+  color: var(--ink);
+}
+.subpage .brand-mark {
+  border-color: var(--line);
+}
+.subpage .nav-links a {
+  color: var(--ink);
+}
+.subpage .nav-links a:hover {
+  color: var(--burgundy);
+}
+.subpage .nav-links a.nav-reserve {
+  border-color: var(--burgundy);
+}
+.subpage .nav-links a.nav-reserve:hover {
+  background: var(--burgundy);
+  color: white;
+}
+
 .hero-content {
   flex: 1;
   display: flex;
   justify-content: center;
   flex-direction: column;
   padding-top: 50px;
-  padding-inline: max(32px, 4vw); /* Gwarantuje idealny, luksusowy odstęp od lewej (i prawej) krawędzi okna */
+  padding-inline: max(32px, 4vw);
   position: relative;
   z-index: 1;
 }
@@ -381,16 +363,17 @@ h2 {
   display: flex;
   justify-content: space-between;
   padding: 0 clamp(1.25rem, 4vw, 3rem);
-  font-size: .6rem;
-  letter-spacing: .18em;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: .7;
+  opacity: 0.7;
 }
+
 /* --- KROPKOWANE MENU I LISTA POTRAW --- */
 .menu__intro {
   max-width: 34ch;
   margin: 1rem auto 2.5rem;
-  font-size: .85rem;
+  font-size: 0.85rem;
   color: var(--muted);
 }
 
@@ -408,16 +391,16 @@ h2 {
   border: 0;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  padding: .7rem .2rem;
-  font: 400 .95rem var(--serif);
+  padding: 0.7rem 0.2rem;
+  font: 400 0.95rem var(--serif);
   color: var(--muted);
   cursor: pointer;
-  transition: color .3s, border-color .3s;
+  transition: color 0.3s, border-color 0.3s;
 }
 .tab:hover { color: var(--ink); }
 .tab.is-active { color: var(--burgundy); border-color: var(--burgundy); }
 
-.panel { animation: fade .5s ease; }
+.panel { animation: fade 0.5s ease; }
 @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 .dishes {
@@ -431,20 +414,27 @@ h2 {
 .dishes li {
   padding: 1.5rem 0;
   border-bottom: 1px solid var(--line);
-  /* Dodajemy płynne przejście dla animacji: */
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
-  padding-inline: 1rem; /* Lekki margines wewnętrzny, by tło miało przestrzeń */
-  margin-inline: -1rem; /* Kompensacja marginesu, by linie nie wystawały */
+  padding-inline: 1rem;
+  margin-inline: -1rem;
   border-radius: 6px;
+  will-change: transform, background-color;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
 }
 
+.dishes li:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  transform: translateX(8px);
+}
 
+.dishes li:hover h3 {
+  opacity: 0.85;
+}
 
 .dish__row {
   display: flex;
   align-items: baseline;
-  gap: .8rem;
+  gap: 0.8rem;
 }
 .dish__row h3 { font-size: 1.05rem; }
 
@@ -455,9 +445,9 @@ h2 {
 }
 
 .price { font: 400 1rem var(--serif); }
-.dishes p { margin: .3rem 0; font-size: .78rem; color: var(--muted); }
-.tag { font-size: .55rem; letter-spacing: .15em; text-transform: uppercase; color: var(--burgundy); }
-.menu__note { text-align: center; font-size: .7rem; color: var(--muted); margin: 2.5rem 0 0; }
+.dishes p { margin: 0.3rem 0; font-size: 0.78rem; color: var(--muted); }
+.tag { font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--burgundy); }
+.menu__note { text-align: center; font-size: 0.7rem; color: var(--muted); margin: 2.5rem 0 0; }
 
 /* --- FORMULARZ REZERWACJI (STRONA RESERVATION) --- */
 .reservation {
@@ -475,7 +465,7 @@ h2 {
 }
 
 .reservation__intro p:not(.eyebrow):not(.questions) {
-  font-size: .9rem;
+  font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.75;
 }
@@ -484,11 +474,11 @@ h2 {
   border-top: 1px solid var(--line);
   padding-top: 1.2rem;
   margin-top: 1.8rem;
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 .questions a {
   color: var(--burgundy);
-  margin-left: .8rem;
+  margin-left: 0.8rem;
 }
 
 .form {
@@ -509,12 +499,12 @@ h2 {
 
 .field label {
   display: block;
-  font-size: .58rem;
-  letter-spacing: .18em;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
-  margin-bottom: .3rem;
-  transition: color .3s;
+  margin-bottom: 0.3rem;
+  transition: color 0.3s;
 }
 .field:focus-within label { color: var(--burgundy); }
 
@@ -523,11 +513,11 @@ h2 {
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--line);
-  padding: .55rem 0;
-  font: 300 .9rem var(--sans);
+  padding: 0.55rem 0;
+  font: 300 0.9rem var(--sans);
   color: var(--ink);
   border-radius: 0;
-  transition: border-color .3s, box-shadow .3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .field input::placeholder { color: #a79e92; }
@@ -539,9 +529,9 @@ h2 {
 }
 
 .field.invalid input, .field.invalid select { border-bottom-color: #b3261e; }
-.error { display: block; min-height: 0; font-size: .68rem; color: #b3261e; margin-top: .3rem; }
-.form__note { text-align: center; font-size: .65rem; color: var(--muted); margin: 1rem 0 0; }
-.success { margin: 1.2rem 0 0; padding: 1rem; background: #e8efe0; border-left: 3px solid var(--olive); font-size: .85rem; animation: fade .5s ease; }
+.error { display: block; min-height: 0; font-size: 0.68rem; color: #b3261e; margin-top: 0.3rem; }
+.form__note { text-align: center; font-size: 0.65rem; color: var(--muted); margin: 1rem 0 0; }
+.success { margin: 1.2rem 0 0; padding: 1rem; background: #e8efe0; border-left: 3px solid var(--olive); font-size: 0.85rem; animation: fade 0.5s ease; }
 
 /* --- STOPKA ADRESOWA (FIND) --- */
 .find {
@@ -566,24 +556,24 @@ h2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem 2rem;
-  border-block: 1px solid rgba(255, 255, 255, .2);
+  border-block: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1.5rem 0;
   margin-bottom: 2rem;
 }
 
 .find__info h3 {
-  font: 500 .55rem var(--sans);
-  letter-spacing: .2em;
+  font: 500 0.55rem var(--sans);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: .65;
-  margin-bottom: .5rem;
+  opacity: 0.65;
+  margin-bottom: 0.5rem;
 }
 
 .find__info p, .find address {
   margin: 0;
   font-style: normal;
-  font-size: .8rem;
-  color: rgba(255, 255, 255, .9);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.6;
 }
 .find__info a:hover { text-decoration: underline; }
@@ -591,7 +581,7 @@ h2 {
 .social {
   list-style: none;
   display: flex;
-  gap: .8rem;
+  gap: 0.8rem;
   margin: 0;
   padding: 0;
 }
@@ -601,9 +591,9 @@ h2 {
   place-items: center;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(255, 255, 255, .5);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
-  transition: all .3s;
+  transition: all 0.3s;
 }
 .social a:hover, .social a:focus-visible {
   background: #fff;
@@ -611,12 +601,12 @@ h2 {
   transform: translateY(-2px);
 }
 
-.copy { margin: 2.5rem 0 0; font-size: .62rem; opacity: .55; }
+.copy { margin: 2.5rem 0 0; font-size: 0.62rem; opacity: 0.55; }
 
 .reveal {
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity .9s ease, transform .9s ease;
+  transition: opacity 0.9s ease, transform 0.9s ease;
 }
 .reveal.is-visible {
   opacity: 1;
@@ -624,221 +614,221 @@ h2 {
 }
 
 /* --- RESPONSYWNOŚĆ (MEDIA QUERIES) --- */
-@media(min-width: 760px) {
+@media (min-width: 760px) {
   .dishes { grid-template-columns: 1fr 1fr; }
   .find { grid-template-columns: 1fr 1fr; min-height: 480px; }
   .reservation__grid { grid-template-columns: 1fr 1fr; gap: 4rem; }
   .find__img { min-height: 100%; }
 }
 
-@media(max-width: 560px) {
+@media (max-width: 560px) {
   .field-row { gap: 1rem; }
   .tabs { gap: 1.3rem; }
 }
 
-@media(prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; }
 }
-/* ==========================================================================
-   STYLE DLA PODSTRONY KONTAKTU (PRZENIESIONE I ZINTEGROWANE ZE STYLE1)
-   ========================================================================== */
 
+/* ==========================================================================
+   STYLE DLA PODSTRONY KONTAKTU
+   ========================================================================== */
 .hero-section {
-    position: relative;
-    width: 100%;
-    min-height: 380px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 4rem 2rem;
-    margin-bottom: 4rem;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
-                url('res/background-img.avif') center/cover; /* Używamy tego samego tła dla spójności */
+  position: relative;
+  width: 100%;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  margin-bottom: 4rem;
+  background:
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)),
+          url("res/background-img.avif") center/cover;
 }
 
-.hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 750px;
+.hero-section .hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 750px;
 }
 
 .subtitle-tag {
-    font-size: 0.75rem;
-    letter-spacing: 3px;
-    color: #f0eae1;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: #f0eae1;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  font-weight: 500;
 }
 
 .page-title {
-    font-family: var(--serif);
-    font-size: clamp(2.5rem, 5vw, 3.8rem);
-    font-weight: 400;
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-    color: #ffffff !important;
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: 400;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: #ffffff !important;
 }
 
 .hero-description {
-    color: #f0eae1;
-    font-size: 1.1rem;
-    font-weight: 300;
+  color: #f0eae1;
+  font-size: 1.1rem;
+  font-weight: 300;
 }
 
 .main-content {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 2rem 4rem 2rem;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem 2rem;
 }
 
 .contact-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    align-items: start;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: start;
 }
 
 @media (min-width: 850px) {
-    .contact-grid {
-        grid-template-columns: 1fr 1.8fr;
-        gap: 5rem;
-    }
+  .contact-grid {
+    grid-template-columns: 1fr 1.8fr;
+    gap: 5rem;
+  }
 }
 
 .contact-details {
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
 }
 
 .detail-block h2 {
-    font-family: var(--serif);
-    font-size: 1.8rem;
-    font-weight: 400;
-    margin-bottom: 0.8rem;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 0.5rem;
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin-bottom: 0.8rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.5rem;
 }
 
 .detail-block p {
-    color: var(--muted);
-    font-size: 0.95rem;
-    margin-bottom: 0.3rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
 }
 
 .detail-block .caption {
-    font-size: 0.7rem;
-    letter-spacing: 2px;
-    color: var(--burgundy);
-    margin-bottom: 0.8rem;
-    text-transform: uppercase;
-    font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--burgundy);
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .detail-block a {
-    color: var(--ink);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.3s;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
 }
 
 .detail-block a:hover {
-    border-color: var(--ink);
+  border-color: var(--ink);
 }
 
 .form-section h2 {
-    font-family: var(--serif);
-    font-size: 2.2rem;
-    font-weight: 400;
-    margin-bottom: 2rem;
+  font-family: var(--serif);
+  font-size: 2.2rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
 }
 
 .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
 }
 
 .form-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
 @media (min-width: 560px) {
-    .form-row {
-        grid-template-columns: 1fr 1fr;
-    }
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .form-group label {
-    font-size: 0.58rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 600;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--line);
-    padding: 0.8rem 0;
-    font-family: var(--sans);
-    font-size: 0.95rem;
-    color: var(--ink);
-    border-radius: 0;
-    transition: border-color 0.3s;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 0.8rem 0;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--ink);
+  border-radius: 0;
+  transition: border-color 0.3s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    outline: none;
-    border-color: var(--burgundy);
+  outline: none;
+  border-color: var(--burgundy);
 }
 
 .submit-button {
-    align-self: flex-start;
-    background-color: var(--ink);
-    color: var(--cream);
-    border: none;
-    padding: 1rem 2.5rem;
-    font-family: var(--sans);
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
+  align-self: flex-start;
+  background-color: var(--ink);
+  color: var(--cream);
+  border: none;
+  padding: 1rem 2.5rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
 }
 
 .submit-button:hover {
-    background-color: var(--burgundy);
-    transform: translateY(-2px);
+  background-color: var(--burgundy);
+  transform: translateY(-2px);
 }
 
 .footer {
-    text-align: center;
-    padding: 3rem 0;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 0.8rem;
-    margin-top: 4rem;
+  text-align: center;
+  padding: 3rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 4rem;
 }
-
 
 /* --- SORTOWANIE KARTY DAŃ (MENU) --- */
 .menu__controls {
@@ -887,26 +877,10 @@ h2 {
     flex: 1;
   }
 }
+
 /* ==========================================================================
-   INTERFEJS ZAMAWIANIA POTRAW (MODAL & HOVER)
+   INTERFEJS ZAMAWIANIA POTRAW (MODAL)
    ========================================================================== */
-
-/* 1. Ultra płynna reakcja na najechanie myszką (Hover) */
-.dishes li {
-  cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
-  border-radius: 6px;
-}
-
-.dishes li:hover {
-  background-color: rgba(0, 0, 0, 0.02); /* Subtelne, neutralne podświetlenie tła */
-}
-
-.dishes li:hover h3 {
-  opacity: 0.85; /* Delikatna reakcja wizualna tytułu dania */
-}
-
-/* 2. Tło modalu (Overlay) - blokuje klikanie pod spodem i rozmywa tło */
 .menu-modal-overlay {
   position: fixed;
   top: 0;
@@ -921,7 +895,6 @@ h2 {
   backdrop-filter: blur(4px);
 }
 
-/* 3. Kontener okna konfiguracji zamówienia */
 .menu-modal-content {
   background: #ffffff;
   padding: 2.5rem;
@@ -934,7 +907,6 @@ h2 {
   font-family: inherit;
 }
 
-/* Przycisk zamknięcia (X) */
 .menu-modal-close {
   position: absolute;
   top: 1.25rem;
@@ -952,7 +924,6 @@ h2 {
   color: #111111;
 }
 
-/* Sekcje formularza wewnątrz modalu */
 .menu-modal-form-group {
   margin: 1.5rem 0;
 }
@@ -964,7 +935,6 @@ h2 {
   font-size: 0.9rem;
 }
 
-/* 4. Selektor ilości potraw (+ / -) */
 .quantity-selector {
   display: flex;
   align-items: center;
@@ -999,7 +969,6 @@ h2 {
   user-select: none;
 }
 
-/* 5. Pole tekstowe na uwagi do kucharza */
 .menu-modal-content textarea {
   width: 100%;
   padding: 0.75rem;
@@ -1014,14 +983,13 @@ h2 {
 
 .menu-modal-content textarea:focus {
   outline: none;
-  border-color: #111111; /* Dopasuj do koloru przewodniego swojej strony */
+  border-color: #111111;
 }
 
-/* 6. Główny przycisk dodawania do zamówienia */
 .menu-modal-submit-btn {
   width: 100%;
   padding: 1rem;
-  background: #111111; /* Możesz zmienić na kolor restauracji, np. burgund lub złoty */
+  background: #111111;
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -1037,25 +1005,17 @@ h2 {
 }
 
 .menu-modal-submit-btn:active {
-  transform: scale(0.98); /* Efekt lekkiego kliknięcia przycisku */
-}
-.dishes li {
-  cursor: pointer;
-  /* Informujemy przeglądarkę, że element będzie się poruszał – to uruchamia GPU */
-  will-change: transform, background-color;
-  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease;
+  transform: scale(0.98);
 }
 
-.dishes li:hover {
-  background-color: rgba(0, 0, 0, 0.02); 
-  transform: translateX(8px); /* Bezpieczne i płynne przesunięcie */
-}
-/* STYL LICZNIKA KOSZYKA W NAVBARZE */
+/* ==========================================================================
+   KOSZYK W NAVBARZE I WYSUWANY PANEL KOSZYKA
+   ========================================================================== */
 .navbar-cart-badge {
   position: absolute;
   top: -4px;
   right: -6px;
-  background-color: #111111; /* Kolor tła licznika – możesz zmienić np. na burgund restauracji */
+  background-color: #111111;
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: bold;
@@ -1073,7 +1033,7 @@ h2 {
   0% { transform: scale(0); }
   100% { transform: scale(1); }
 }
-/* WYSOUWANY PANEL KOSZYKA */
+
 .cart-overlay {
   position: fixed;
   top: 0;
@@ -1204,8 +1164,18 @@ h2 {
 .cart-sidebar__submit-btn:hover {
   background: #333333;
 }
+
+.cart-sidebar__submit-btn:disabled {
+  background: #ccc4ba;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ==========================================================================
-   ELEGANCKIE STYLE PLANOWANIA ZAMÓWIENIA W KOSZYKU
+   PLANOWANIE ZAMÓWIENIA W KOSZYKU
    ========================================================================== */
 .cart-planning {
   margin-top: 1.5rem;
@@ -1221,7 +1191,6 @@ h2 {
   color: var(--ink);
 }
 
-/* Przełącznik Odbiór / Dostawa w formie eleganckich zakładek */
 .cart-planning__toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1259,7 +1228,6 @@ h2 {
   font-weight: 600;
 }
 
-/* Baner o koszcie dostawy */
 .delivery-info-banner {
   background: var(--sand);
   border-left: 3px solid var(--olive);
@@ -1270,7 +1238,6 @@ h2 {
   border-radius: 0 4px 4px 0;
 }
 
-/* Grupy pól formularza (etykieta nad polem) */
 .cart-planning__group {
   display: flex;
   flex-direction: column;
@@ -1285,6 +1252,7 @@ h2 {
   color: var(--muted);
   font-weight: 600;
 }
+
 .cart-planning__group select,
 .cart-planning__group input {
   width: 100%;
@@ -1301,6 +1269,7 @@ h2 {
 .cart-planning__group input::placeholder {
   color: #b5ada2;
 }
+
 .cart-planning__group select:focus,
 .cart-planning__group input:focus {
   outline: none;
@@ -1308,14 +1277,12 @@ h2 {
   box-shadow: 0 0 0 2px rgba(110, 30, 43, 0.1);
 }
 
-/* Układ dwóch kolumn dla daty/godziny oraz telefonu/maila */
 .cart-planning__row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.85rem;
 }
 
-/* Komunikat błędu walidacji */
 .cart-planning__error {
   color: #b3261e;
   background: #fdecea;
@@ -1326,7 +1293,6 @@ h2 {
   margin-top: 0.5rem;
 }
 
-/* Wiersz podsumowania kosztu dostawy w stopce */
 .cart-sidebar__sub-row {
   display: flex;
   justify-content: space-between;
@@ -1334,9 +1300,7 @@ h2 {
   color: var(--muted);
   margin-bottom: 0.5rem;
 }
-/* ==========================================================================
-   ELEGANCKI SELEKTOR ILOŚCI (+ / -) W KOSZYKU
-   ========================================================================== */
+
 .cart-sidebar__qty-selector {
   display: inline-flex !important;
   align-items: center;
@@ -1390,7 +1354,7 @@ h2 {
   color: var(--ink);
   user-select: none;
 }
-/* Podpowiedź godzin otwarcia pod wyborem daty w koszyku */
+
 .cart-planning__hours-hint {
   font-size: 0.78rem;
   color: var(--ink);
@@ -1408,15 +1372,7 @@ h2 {
   color: #b3261e;
   font-weight: 500;
 }
-/* Wygląd zablokowanego przycisku zamówienia */
-.cart-sidebar__submit-btn:disabled {
-  background: #ccc4ba;
-  color: #ffffff;
-  cursor: not-allowed;
-  opacity: 0.75;
-  transform: none;
-  box-shadow: none;
-}
+
 /* ==========================================================================
    NAWIGACJA: LOGOWANIE I PANEL UŻYTKOWNIKA
    ========================================================================== */
@@ -1425,11 +1381,11 @@ h2 {
   align-items: center;
   gap: 0.75rem;
   font-size: 0.85rem;
-  color: #ffffff; /* Jasny tekst na ciemnym tle strony głównej */
+  color: #ffffff;
 }
 
 body.subpage .nav-user {
-  color: var(--ink); /* Ciemny tekst na jasnym tle podstron */
+  color: var(--ink);
 }
 
 .nav-user__greeting {
@@ -1479,29 +1435,6 @@ body.subpage .nav-user__logout:hover {
 }
 
 .nav-login-btn {
-  background: var(--burgundy);
-  color: #ffffff;
-  border: none;
-  padding: 0.45rem 0.95rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: var(--sans);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.nav-login-btn:hover {
-  background: #561621;
-}
-
-.nav-login-btn:active {
-  transform: scale(0.97);
-}
-/* Strona główna (ciemne tło): jasny, kremowy lub przezroczysty przycisk ze złotym/białym akcentem */
-.nav-login-btn {
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.55);
@@ -1522,7 +1455,6 @@ body.subpage .nav-user__logout:hover {
   border-color: #ffffff;
 }
 
-/* Podstrony (jasne tło): wyraźny burgundowy przycisk */
 body.subpage .nav-login-btn {
   background: var(--burgundy);
   color: #ffffff;
@@ -1540,36 +1472,244 @@ body.subpage .nav-login-btn:hover {
 }
 
 /* ==========================================================================
-    LOGO I MARKA RESTAURACJI
+   IKONA ZĘBATKI ADMINA I MODAL EDYCJI GODZIN OTWARCIA
    ========================================================================== */
-/* ==========================================================================
-    LOGO I MARKA RESTAURACJI
-   ========================================================================== */
-#hednav {
-  min-height: 124px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.site-brand {
-  height: auto;
-  min-height: 104px;
+.nav-admin-settings-btn {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s ease;
 }
 
-.brand {
-  gap: 14px;
+.nav-admin-settings-btn svg {
+  transition: transform 0.35s ease;
 }
 
-.brand-logo {
-  width: 300px;
-  height: 280px;
-  max-width: none;
-  margin-top: 12px;
-  object-fit: cover;
-  transform: none;
-  border-radius: 50%;
-  flex-shrink: 0;
+.nav-admin-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #ffffff;
+}
+
+.nav-admin-settings-btn:hover svg {
+  transform: rotate(60deg);
+}
+
+body.subpage .nav-admin-settings-btn {
+  border-color: var(--line);
+  background: var(--sand);
+  color: var(--ink);
+}
+
+body.subpage .nav-admin-settings-btn:hover {
+  border-color: var(--burgundy);
+  color: var(--burgundy);
+  background: #ffffff;
+}
+
+.admin-modal-overlay {
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.admin-settings-modal {
+  background: var(--cream);
+  color: var(--ink);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+.admin-settings-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.admin-settings-modal__close:hover {
+  color: var(--ink);
+}
+
+.admin-settings-modal__title {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  font-weight: 400;
+  margin-bottom: 0.35rem;
+}
+
+.admin-settings-modal__subtitle {
+  font-size: 0.84rem;
+  color: var(--muted);
+  margin-bottom: 1.4rem;
+  line-height: 1.5;
+}
+
+.admin-settings-modal__loading {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem 0;
+}
+
+.admin-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.admin-hours-row.is-closed {
+  background: var(--sand);
+  opacity: 0.82;
+}
+
+.admin-hours-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-hours-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--burgundy);
+  cursor: pointer;
+}
+
+.admin-hours-row__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.admin-hours-row__inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.admin-hours-row__inputs input[type="time"] {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.admin-hours-row__inputs input[type="time"]:focus {
+  outline: none;
+  border-color: var(--burgundy);
+}
+
+.admin-hours-row__sep {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.admin-hours-row__closed-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.admin-settings-modal__success {
+  color: #1e5e2f;
+  background: #eaf6ed;
+  border-left: 3px solid #2e7d32;
+  padding: 0.75rem;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.admin-settings-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
+}
+
+.admin-settings-modal__cancel {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-settings-modal__cancel:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.admin-settings-modal__save {
+  width: auto;
+  padding: 0.75rem 1.6rem;
+  background: var(--burgundy);
+  font-size: 0.88rem;
+}
+
+.admin-settings-modal__save:hover:not(:disabled) {
+  background: #561621;
+}
+
+@media (max-width: 520px) {
+  .admin-settings-modal {
+    padding: 1.35rem;
+  }
+
+  .admin-hours-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .admin-hours-row__inputs {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 /* ==========================================================================
@@ -1615,7 +1755,6 @@ body.subpage .nav-login-btn:hover {
   font-weight: 600;
 }
 
-/* Rozszerzenie modalu dania pod listę opinii */
 .menu-modal-content--wide {
   max-width: 540px;
   max-height: 90vh;
@@ -1638,7 +1777,6 @@ body.subpage .nav-login-btn:hover {
   color: var(--burgundy);
 }
 
-/* Sekcja opinii w modalu */
 .menu-reviews {
   margin-top: 1.75rem;
   padding-top: 1.4rem;
