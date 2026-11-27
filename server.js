@@ -6,10 +6,9 @@ import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "domyslny_sekretny_klucz_dev";
-
 dotenv.config();
 
+const JWT_SECRET = process.env.JWT_SECRET || "domyslny_sekretny_klucz_dev";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -27,21 +26,21 @@ const pool = new pg.Pool({
 app.get("/api/dishes", async (req, res) => {
   try {
     const query = `
-            SELECT
-                d.id,
-                d.name,
-                d.description,
-                d.price,
-                d.tag,
-                d.is_available,
-                d.image_url,
-                c.name AS category_name,
-                c.display_order
-            FROM dishes d
-                     JOIN categories c ON d.category_id = c.id
-            WHERE d.is_available = TRUE
-            ORDER BY c.display_order, d.id;
-        `;
+      SELECT
+        d.id,
+        d.name,
+        d.description,
+        d.price,
+        d.tag,
+        d.is_available,
+        d.image_url,
+        c.name AS category_name,
+        c.display_order
+      FROM dishes d
+      JOIN categories c ON d.category_id = c.id
+      WHERE d.is_available = TRUE
+      ORDER BY c.display_order, d.id;
+    `;
     const result = await pool.query(query);
     res.json(result.rows);
   } catch (err) {
@@ -66,6 +65,7 @@ app.get("/api/opening-hours", async (req, res) => {
       .json({ error: "Błąd serwera podczas pobierania godzin otwarcia" });
   }
 });
+
 // Pobieranie godzin pracy kuchni dla konkretnej daty (podpowiedź w koszyku)
 app.get("/api/kitchen-hours", async (req, res) => {
   const { date } = req.query;
@@ -79,7 +79,6 @@ app.get("/api/kitchen-hours", async (req, res) => {
       return res.json({ isClosed: true });
     }
 
-    // Wyliczamy maksymalną godzinę przyjmowania zamówień (30 min przed zamknięciem)
     const closeMinutes = timeToMinutes(hours.close) - 30;
     const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, "0")}:${String(closeMinutes % 60).padStart(2, "0")}`;
 
@@ -111,7 +110,7 @@ function optionalAuth(req, res, next) {
   next();
 }
 
-// Middleware: wymaga zalogowania (przyda się np. do historii zamówień i przyszłych komentarzy)
+// Middleware: wymaga zalogowania (historia zamówień i oceny posiłków)
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -364,9 +363,156 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
   }
 });
 
-// Przyjmowanie zamówień i zapis w bazie danych
+// ==========================================
+// OCENY I OPINIE POSIŁKÓW (dish_reviews)
+// ==========================================
+
+// Pobieranie ocen oraz średniej dla konkretnego dania
+app.get("/api/dishes/:dishId/reviews", async (req, res) => {
+  const dishId = Number(req.params.dishId);
+  if (!Number.isInteger(dishId) || dishId <= 0) {
+    return res.status(400).json({ error: "Nieprawidłowe ID dania." });
+  }
+
+  try {
+    const reviewsResult = await pool.query(
+      `SELECT id, dish_id, dish_name, user_id, user_name, user_email, rating, comment, created_at
+       FROM dish_reviews
+       WHERE dish_id = $1
+       ORDER BY created_at DESC;`,
+      [dishId],
+    );
+
+    const statsResult = await pool.query(
+      `SELECT
+         COUNT(*)::int AS reviews_count,
+         COALESCE(ROUND(AVG(rating)::numeric, 1), 0)::float AS average_rating
+       FROM dish_reviews
+       WHERE dish_id = $1;`,
+      [dishId],
+    );
+
+    res.json({
+      dishId,
+      averageRating: statsResult.rows[0].average_rating,
+      reviewsCount: statsResult.rows[0].reviews_count,
+      reviews: reviewsResult.rows,
+    });
+  } catch (err) {
+    console.error("Błąd pobierania ocen dania:", err.message);
+    res.status(500).json({ error: "Błąd serwera podczas pobierania ocen." });
+  }
+});
+
+// Pobieranie wszystkich ostatnich opinii
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, dish_id, dish_name, user_id, user_name, user_email, rating, comment, created_at
+       FROM dish_reviews
+       ORDER BY created_at DESC;`,
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Błąd pobierania wszystkich ocen:", err.message);
+    res.status(500).json({ error: "Błąd serwera podczas pobierania opinii." });
+  }
+});
+
+// Dodawanie oceny do konkretnego dania (tylko dla zalogowanego użytkownika, max 1 ocena na danie)
+app.post("/api/dishes/:dishId/reviews", requireAuth, async (req, res) => {
+  const dishId = Number(req.params.dishId);
+  const rating = Number(req.body.rating);
+  const comment = req.body.comment ? String(req.body.comment).trim() : null;
+
+  if (!Number.isInteger(dishId) || dishId <= 0) {
+    return res.status(400).json({ error: "Nieprawidłowe ID dania." });
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res
+      .status(400)
+      .json({ error: "Ocena musi być liczbą całkowitą od 1 do 5." });
+  }
+
+  try {
+    const dishResult = await pool.query(
+      "SELECT id, name FROM dishes WHERE id = $1",
+      [dishId],
+    );
+    const dish = dishResult.rows.at(0);
+    if (!dish) {
+      return res.status(404).json({ error: "Wybrane danie nie istnieje." });
+    }
+
+    const userResult = await pool.query(
+      "SELECT id, name, email FROM users WHERE id = $1",
+      [req.user.id],
+    );
+    const user = userResult.rows.at(0);
+    if (!user) {
+      return res.status(404).json({ error: "Nie znaleziono konta użytkownika." });
+    }
+
+    // Sprawdzenie, czy użytkownik już ocenił to konkretne danie
+    const existingReview = await pool.query(
+      "SELECT id FROM dish_reviews WHERE dish_id = $1 AND user_id = $2 LIMIT 1",
+      [dish.id, user.id],
+    );
+    if (existingReview.rows.length > 0) {
+      return res.status(409).json({
+        error: "Możesz wystawić tylko jedną ocenę dla tego dania.",
+      });
+    }
+
+    const insertResult = await pool.query(
+      `INSERT INTO dish_reviews (dish_id, dish_name, user_id, user_name, user_email, rating, comment)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, dish_id, dish_name, user_id, user_name, user_email, rating, comment, created_at;`,
+      [dish.id, dish.name, user.id, user.name, user.email, rating, comment || null],
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Dziękujemy za wystawienie oceny!",
+      review: insertResult.rows[0],
+    });
+  } catch (err) {
+    if (err.code === "23505") {
+      return res.status(409).json({
+        error: "Możesz wystawić tylko jedną ocenę dla tego dania.",
+      });
+    }
+    console.error("Błąd podczas zapisywania oceny:", err.message);
+    res
+      .status(500)
+      .json({ error: "Błąd serwera podczas zapisywania oceny dania." });
+  }
+});
+
+// Usuwanie oceny przez administratora (moderacja)
+app.delete("/api/reviews/:id", requireAuth, requireAdmin, async (req, res) => {
+  const reviewId = Number(req.params.id);
+  if (!Number.isInteger(reviewId) || reviewId <= 0) {
+    return res.status(400).json({ error: "Nieprawidłowe ID opinii." });
+  }
+
+  try {
+    const deleteResult = await pool.query(
+      "DELETE FROM dish_reviews WHERE id = $1 RETURNING id",
+      [reviewId],
+    );
+    if (deleteResult.rows.length === 0) {
+      return res.status(404).json({ error: "Nie znaleziono takiej opinii." });
+    }
+    res.json({ success: true, message: "Opinia została usunięta." });
+  } catch (err) {
+    console.error("Błąd usuwania opinii:", err.message);
+    res.status(500).json({ error: "Błąd serwera podczas usuwania opinii." });
+  }
+});
+
 // Przyjmowanie zamówień i zapis w bazie danych (z planowaniem dostawy i walidacją godzin)
-// Przyjmowanie zamówień i zapis w bazie danych
 app.post("/api/orders", optionalAuth, async (req, res) => {
   console.log("--- NOWE ZAMÓWIENIE Z FRONTU ---");
   console.log("ODEBRANE BODY:", JSON.stringify(req.body, null, 2));
@@ -383,7 +529,6 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
     scheduledTime,
   } = req.body;
 
-  // 1. Walidacja koszyka i podstawowych danych
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Koszyk nie może być pusty." });
   }
@@ -401,7 +546,6 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
       .json({ error: "Podaj pełny adres dostawy (ulica i miasto)." });
   }
 
-  // 2. Walidacja przeszłości oraz 45-minutowego bufora na przygotowanie
   if (isDateTimeInPast(scheduledDate, scheduledTime)) {
     return res.status(400).json({ error: "Wybrany termin już minął." });
   }
@@ -419,7 +563,6 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
   }
 
   try {
-    // 3. Walidacja godzin otwarcia (zgodnie z getOpeningHours w server.js: zwraca { open, close } lub null)
     const openingHours = await getOpeningHours(scheduledDate);
 
     if (!openingHours) {
@@ -431,7 +574,7 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
 
     const requestedMinutes = timeToMinutes(scheduledTime);
     const openMinutes = timeToMinutes(openingHours.open);
-    const closeMinutes = timeToMinutes(openingHours.close) - 30; // Kuchnia zamyka się 30 min przed końcem
+    const closeMinutes = timeToMinutes(openingHours.close) - 30;
 
     if (requestedMinutes < openMinutes || requestedMinutes > closeMinutes) {
       const lastOrderHour = `${String(Math.floor(closeMinutes / 60)).padStart(2, "0")}:${String(closeMinutes % 60).padStart(2, "0")}`;
@@ -440,7 +583,6 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
       });
     }
 
-    // 4. Bezpieczne przeliczenie kwoty i kosztu dostawy na backendzie
     const parseSafeNumber = (val) => {
       if (typeof val === "number" && !Number.isNaN(val)) return val;
       if (typeof val === "string") {
@@ -465,21 +607,20 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
       deliveryType === "delivery" && itemsSubtotal < 150 ? 15.0 : 0.0;
     const finalTotalPrice = Number((itemsSubtotal + deliveryFee).toFixed(2));
 
-    // 5. Zapis w transakcji SQL
     const client = await pool.connect();
 
     try {
       await client.query("BEGIN");
 
       const orderQuery = `
-                INSERT INTO orders (
-                    total_price, delivery_fee, customer_name, customer_email, customer_phone,
-                    delivery_type, delivery_street, delivery_city, delivery_notes,
-                    scheduled_date, scheduled_time, user_id
-                )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                RETURNING id;
-            `;
+        INSERT INTO orders (
+          total_price, delivery_fee, customer_name, customer_email, customer_phone,
+          delivery_type, delivery_street, delivery_city, delivery_notes,
+          scheduled_date, scheduled_time, user_id
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING id;
+      `;
 
       const orderValues = [
         finalTotalPrice,
@@ -502,9 +643,9 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
       const orderId = orderResult.rows[0].id;
 
       const itemQuery = `
-                INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
-                VALUES ($1, $2, $3, $4, $5, $6);
-            `;
+        INSERT INTO order_items (order_id, dish_id, dish_name, quantity, price, special_notes)
+        VALUES ($1, $2, $3, $4, $5, $6);
+      `;
 
       for (const item of items) {
         await client.query(itemQuery, [
@@ -565,13 +706,11 @@ app.post("/api/orders", optionalAuth, async (req, res) => {
   }
 });
 
-// Pomocnicza funkcja zamieniająca godzinę "HH:MM" lub "HH:MM:SS" na minuty od północy
 function timeToMinutes(timeStr) {
   const [hours, minutes] = String(timeStr).split(":").map(Number);
   return (hours || 0) * 60 + (minutes || 0);
 }
 
-// Sprawdza, czy podana data i godzina należą do przeszłości
 function isDateTimeInPast(dateStr, timeStr) {
   const [year, month, day] = String(dateStr).split("-").map(Number);
   const [hours, minutes] = String(timeStr || "00:00")
@@ -610,10 +749,9 @@ function doesLabelMatchDay(daysLabel, isoDay) {
   return single !== null && isoDay === single;
 }
 
-// Pobiera godziny otwarcia z bazy danych dla podanej daty ("YYYY-MM-DD") lub zwraca null, jeśli lokal jest zamknięty
 async function getOpeningHours(dateStr) {
   const [year, month, day] = String(dateStr).split("-").map(Number);
-  const jsDay = new Date(year, month - 1, day).getDay(); // 0 = Niedziela, 1 = Poniedziałek, ..., 6 = Sobota
+  const jsDay = new Date(year, month - 1, day).getDay();
   const isoDay = jsDay === 0 ? 7 : jsDay;
 
   const result = await pool.query(
@@ -634,7 +772,6 @@ async function getOpeningHours(dateStr) {
   return null;
 }
 
-// Wysyła e-mail z potwierdzeniem rezerwacji na adres podany przez gościa
 async function sendReservationEmail({
   name,
   email,
@@ -670,21 +807,21 @@ async function sendReservationEmail({
     to: email,
     subject: "Potwierdzenie rezerwacji",
     html: `
-            <div style="font-family: Arial, sans-serif; color: #24201c; line-height: 1.6;">
-                <h2>Dziękujemy za rezerwację w naszej restauracji</h2>
-                <p>Cześć <strong>${name}</strong>, Twoja rezerwacja została potwierdzona.</p>
-                <ul>
-                    <li><strong>Data:</strong> ${reservationDate}</li>
-                    <li><strong>Godzina:</strong> ${reservationTime}</li>
-                    <li><strong>Liczba osób:</strong> ${guestsCount}</li>
-                    <li><strong>Numer stolika:</strong> ${assignedTable}</li>
-                </ul>
-                <p>Do zobaczenia!</p>
-            </div>
-        `,
+      <div style="font-family: Arial, sans-serif; color: #24201c; line-height: 1.6;">
+        <h2>Dziękujemy za rezerwację w naszej restauracji</h2>
+        <p>Cześć <strong>${name}</strong>, Twoja rezerwacja została potwierdzona.</p>
+        <ul>
+          <li><strong>Data:</strong> ${reservationDate}</li>
+          <li><strong>Godzina:</strong> ${reservationTime}</li>
+          <li><strong>Liczba osób:</strong> ${guestsCount}</li>
+          <li><strong>Numer stolika:</strong> ${assignedTable}</li>
+        </ul>
+        <p>Do zobaczenia!</p>
+      </div>
+    `,
   });
 }
-// Wysyła e-mail z potwierdzeniem zamówienia na adres podany przez klienta
+
 async function sendOrderEmail({
   orderId,
   customerName,
@@ -803,7 +940,7 @@ app.post("/api/reservations", async (req, res) => {
   }
 
   const TOTAL_TABLES = 50;
-  const MIN_DIFF_MINUTES = 180; // 3 godziny = 180 minut
+  const MIN_DIFF_MINUTES = 180;
 
   try {
     const openingHours = await getOpeningHours(reservationDate);
@@ -823,16 +960,14 @@ app.post("/api/reservations", async (req, res) => {
       });
     }
 
-    // 1. Pobieramy istniejące rezerwacje w wybranym dniu
     const existingResult = await pool.query(
       `SELECT table_number, reservation_time
-             FROM reservations
-             WHERE reservation_date = $1
-               AND table_number IS NOT NULL`,
+       FROM reservations
+       WHERE reservation_date = $1
+         AND table_number IS NOT NULL`,
       [reservationDate],
     );
 
-    // Grupujemy godziny rezerwacji według numeru stolika
     const reservationsByTable = new Map();
     for (const row of existingResult.rows) {
       const tableNum = Number(row.table_number);
@@ -851,10 +986,8 @@ app.post("/api/reservations", async (req, res) => {
       const bookedTimes = reservationsByTable.get(tableNum);
 
       if (!bookedTimes || bookedTimes.length === 0) {
-        // Stolik nie ma jeszcze żadnej rezerwacji w tym dniu
         unusedTables.push(tableNum);
       } else {
-        // Stolik ma już rezerwację w tym dniu – sprawdzamy, czy od każdej z nich mija min. 3h
         const hasConflict = bookedTimes.some(
           (bookedMinutes) =>
             Math.abs(bookedMinutes - requestedMinutes) < MIN_DIFF_MINUTES,
@@ -865,7 +998,6 @@ app.post("/api/reservations", async (req, res) => {
       }
     }
 
-    // Najpierw losujemy spośród całkiem wolnych stolików, a gdy ich braknie – spośród stolików z min. 3h odstępu
     const candidateTables =
       unusedTables.length > 0 ? unusedTables : reusableTables;
 
@@ -879,12 +1011,11 @@ app.post("/api/reservations", async (req, res) => {
     const randomIndex = Math.floor(Math.random() * candidateTables.length);
     const assignedTable = candidateTables[randomIndex];
 
-    // 2. Zapisujemy rezerwację wraz z wylosowanym numerem stolika
     const insertQuery = `
-            INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, guests, table_number)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *;
-        `;
+      INSERT INTO reservations (name, email, phone, reservation_date, reservation_time, guests, table_number)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *;
+    `;
     const values = [
       name,
       email,
