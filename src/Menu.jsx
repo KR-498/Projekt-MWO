@@ -481,7 +481,7 @@ export default function Menu() {
                       className="menu-reviews__submit-btn"
                       disabled={reviewSubmitting}
                     >
-                      {reviewSubmitting ? "Zapisywanie..." : "Ocenić"}
+                      {reviewSubmitting ? "Zapisywanie..." : "Oceń"}
                     </button>
                   </form>
                 )
